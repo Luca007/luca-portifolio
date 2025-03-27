@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEdit } from "@/contexts/EditContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { cn } from "@/lib/utils";
@@ -17,11 +18,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/t
 export default function SimpleFixedHeader() {
   const { content } = useLanguage();
   const { user, isAdmin, signOut } = useAuth();
+  const { isEditMode, setEditMode } = useEdit();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
 
   // Scroll handler with debounce to prevent excessive renders
   useEffect(() => {
@@ -86,14 +87,8 @@ export default function SimpleFixedHeader() {
   const handleLogoClick = (e: React.MouseEvent) => {
     if (isAdmin) {
       // Admin already logged in, toggle edit mode
-      setIsEditMode(!isEditMode);
-      if (!isEditMode) {
-        // Broadcasting that edit mode is enabled
-        window.dispatchEvent(new CustomEvent('edit-mode-enabled'));
-      } else {
-        // Broadcasting that edit mode is disabled
-        window.dispatchEvent(new CustomEvent('edit-mode-disabled'));
-      }
+      e.preventDefault();
+      setEditMode(!isEditMode);
     } else if (user) {
       // Regular user logged in, sign out
       e.preventDefault();
@@ -207,7 +202,6 @@ export default function SimpleFixedHeader() {
               <Button
                 variant="ghost"
                 size="icon"
-
                 onClick={() => signOut()}
                 className="text-foreground/70 hover:text-primary hover:bg-muted/50"
               >

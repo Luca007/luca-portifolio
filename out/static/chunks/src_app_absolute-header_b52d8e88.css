@@ -1,0 +1,52 @@
+/* [project]/src/app/absolute-header.css [app-client] (css) */
+#absolute-header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 9999 !important;
+  transform: translateZ(0) !important;
+  will-change: transform !important;
+  backface-visibility: hidden !important;
+}
+
+body.has-absolute-header {
+  position: relative;
+}
+
+[id="absolute-header"], header#absolute-header, #absolute-header.absolute, #absolute-header.fixed, #absolute-header.sticky, header[id="absolute-header"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 9999 !important;
+}
+
+.fixed-progress-bar, div[class*="z-[99999]"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 99999 !important;
+  pointer-events: none !important;
+}
+
+@supports (-webkit-overflow-scrolling: touch) {
+  #absolute-header {
+    position: fixed !important;
+    -webkit-transform: translateZ(0) !important;
+    transform: translateZ(0) !important;
+  }
+}
+
+@-moz-document url-prefix() {
+  #absolute-header {
+    position: fixed !important;
+    transform: translateZ(0) !important;
+  }
+}
+
+/*# sourceMappingURL=src_app_absolute-header_b52d8e88.css.map*/

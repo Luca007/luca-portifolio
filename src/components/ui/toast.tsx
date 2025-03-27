@@ -111,8 +111,8 @@ export const toast = (props: Omit<Toast, "id">) => {
 // Hook into the custom event to create toasts
 if (typeof window !== "undefined") {
   window.addEventListener("toast", ((event: CustomEvent) => {
-    const toastContainer = document.getElementById("toast-container");
-    if (!toastContainer) {
+    let toastContainerElement = document.getElementById("toast-container");
+    if (!toastContainerElement) {
       const container = document.createElement("div");
       container.id = "toast-container";
       container.className = "fixed top-4 right-4 z-[9999] flex flex-col gap-2 items-end max-w-[420px]";
@@ -152,8 +152,7 @@ if (typeof window !== "undefined") {
       });
     }
 
-    const toastContainer = document.getElementById("toast-container") as HTMLElement;
-    toastContainer.appendChild(toastEl);
+    toastContainerElement.appendChild(toastEl);
 
     // Trigger fade in
     setTimeout(() => {

@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/src/app/fixed-header.css"],"sourcesContent":["/* Estilos para header fixo */\r\n\r\n/* Garantir que o body tenha espaço para o header fixo */\r\nbody {\r\n  padding-top: 60px; /* Altura aproximada do header */\r\n}\r\n\r\n/* Header fixo na parte superior */\r\n#fixed-header {\r\n  position: fixed !important;\r\n  top: 0 !important;\r\n  left: 0 !important;\r\n  right: 0 !important;\r\n  width: 100% !important;\r\n  z-index: 9999 !important;\r\n  transition: all 0.3s ease !important;\r\n}\r\n\r\n/* Barra de progresso */\r\n.fixed-progress-bar {\r\n  position: fixed !important;\r\n  top: 0 !important;\r\n  left: 0 !important;\r\n  right: 0 !important;\r\n  width: 100% !important;\r\n  z-index: 99999 !important;\r\n  pointer-events: none !important;\r\n}\r\n\r\n/* Espaçamento para o conteúdo principal */\r\nmain {\r\n  position: relative;\r\n  z-index: 1;\r\n}\r\n\r\n/* Ajustes para diferentes navegadores */\r\n@supports (-webkit-appearance:none) {\r\n  #fixed-header {\r\n    position: fixed !important;\r\n    -webkit-transform: translateZ(0);\r\n    transform: translateZ(0);\r\n  }\r\n}\r\n"],"names":[],"mappings":"AAGA;;;;AAKA;;;;;;;;;;AAWA;;;;;;;;;;AAWA;;;;;AAMA;EACE"}}]
+}

@@ -64,14 +64,58 @@ export default function AdminPanel() {
       setSelectedItem(null);
     };
 
+    const handleEditItem = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { id, path, type, content } = customEvent.detail;
+
+      // Determine section based on path or try to find it in the DOM
+      let sectionId = currentSection;
+
+      // If there's a section ID in the path, use it
+      if (path && path.length > 0) {
+        const possibleSection = path[0];
+        const isValidSection = sections.some(section => section.id === possibleSection);
+        if (isValidSection) {
+          sectionId = possibleSection;
+        }
+      }
+      // Otherwise try to find the section from the DOM
+      else {
+        const element = document.getElementById(id);
+        if (element) {
+          // Find the closest section parent
+          const sectionElement = element.closest('section[id]');
+          if (sectionElement && sectionElement.id) {
+            const isValidSection = sections.some(section => section.id === sectionElement.id);
+            if (isValidSection) {
+              sectionId = sectionElement.id;
+            }
+          }
+        }
+      }
+
+      // Load the section data and select this item
+      if (sectionId !== currentSection) {
+        loadSectionData(sectionId).then(() => {
+          // Find and select the item after section data is loaded
+          handleEdit(id, path, type, content);
+        });
+      } else {
+        // Section already loaded, just select the item
+        handleEdit(id, path, type, content);
+      }
+    };
+
     window.addEventListener('edit-mode-enabled', handleEditModeEnabled);
     window.addEventListener('edit-mode-disabled', handleEditModeDisabled);
+    window.addEventListener('edit-item', handleEditItem);
 
     return () => {
       window.removeEventListener('edit-mode-enabled', handleEditModeEnabled);
       window.removeEventListener('edit-mode-disabled', handleEditModeDisabled);
+      window.removeEventListener('edit-item', handleEditItem);
     };
-  }, []);
+  }, [currentSection]);
 
   // Load section data from Firestore
   const loadSectionData = async (sectionId: string) => {
@@ -270,7 +314,7 @@ export default function AdminPanel() {
     const hasItemChanges = hasChanges(selectedItem);
 
     return (
-      <div className="p-4">
+      <div className="p-4 h-full overflow-auto">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             {selectedItem.type === "heading" && <Type size={18} />}
@@ -307,65 +351,141 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        <div className="space-y-4">
-          {/* Render different form fields based on the item type */}
-          {selectedItem.type === "heading" || selectedItem.type === "text" || selectedItem.type === "button" || selectedItem.type === "label" ? (
-            <div>
-              <Label htmlFor="text">Text Content</Label>
-              <Input
-                id="text"
-                value={selectedItem.content.text || ""}
-                onChange={(e) => handleContentChange("text", e.target.value)}
-                className="mt-1"
-              />
-            </div>
-          ) : selectedItem.type === "paragraph" ? (
-            <div>
-              <Label htmlFor="text">Paragraph Content</Label>
-              <Textarea
-                id="text"
-                value={selectedItem.content.text || ""}
-                onChange={(e) => handleContentChange("text", e.target.value)}
-                className="mt-1 min-h-[120px]"
-              />
-            </div>
-          ) : (
-            // Generic editor for other types
-            Object.entries(selectedItem.content)
-              .filter(([key]) => !["id", "type", "updatedAt", "order"].includes(key)) // Skip internal fields
-              .map(([key, value]) => (
-                <div key={key}>
-                  <Label htmlFor={key}>{key.charAt(0).toUpperCase() + key.slice(1)}</Label>
-                  {typeof value === "string" ? (
-                    value.length > 80 ? (
-                      <Textarea
-                        id={key}
-                        value={value as string}
-                        onChange={(e) => handleContentChange(key, e.target.value)}
-                        className="mt-1"
-                      />
-                    ) : (
-                      <Input
-                        id={key}
-                        value={value as string}
-                        onChange={(e) => handleContentChange(key, e.target.value)}
-                        className="mt-1"
-                      />
-                    )
-                  ) : (
-                    <div className="text-sm text-muted-foreground mt-1 p-2 bg-muted/30 rounded">
-                      Cannot edit this field type directly
-                    </div>
-                  )}
-                </div>
-              ))
-          )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left side: Edit form */}
+          <div className="space-y-4 bg-card p-4 rounded-lg border border-border/30">
+            <h4 className="text-sm uppercase tracking-wide text-muted-foreground font-medium mb-2">Edit Content</h4>
 
-          {hasItemChanges && (
-            <div className="bg-primary/10 text-primary p-3 rounded-md text-sm mt-4">
-              This item has unsaved changes.
+            {/* Render different form fields based on the item type */}
+            {selectedItem.type === "heading" || selectedItem.type === "text" || selectedItem.type === "button" || selectedItem.type === "label" ? (
+              <div>
+                <Label htmlFor="text">Text Content</Label>
+                <Input
+                  id="text"
+                  value={selectedItem.content.text || ""}
+                  onChange={(e) => handleContentChange("text", e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            ) : selectedItem.type === "paragraph" ? (
+              <div>
+                <Label htmlFor="text">Paragraph Content</Label>
+                <Textarea
+                  id="text"
+                  value={selectedItem.content.text || ""}
+                  onChange={(e) => handleContentChange("text", e.target.value)}
+                  className="mt-1 min-h-[120px]"
+                />
+              </div>
+            ) : (
+              // Generic editor for other types
+              Object.entries(selectedItem.content)
+                .filter(([key]) => ![
+                  "id",
+                  "type",
+                  "updatedAt",
+                  "order",
+                  "createdAt"
+                ].includes(key)) // Skip internal fields
+                .map(([key, value]) => (
+                  <div key={key}>
+                    <Label htmlFor={key}>{key.charAt(0).toUpperCase() + key.slice(1)}</Label>
+                    {typeof value === "string" ? (
+                      value.length > 80 ? (
+                        <Textarea
+                          id={key}
+                          value={value as string}
+                          onChange={(e) => handleContentChange(key, e.target.value)}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <Input
+                          id={key}
+                          value={value as string}
+                          onChange={(e) => handleContentChange(key, e.target.value)}
+                          className="mt-1"
+                        />
+                      )
+                    ) : (
+                      <div className="text-sm text-muted-foreground mt-1 p-2 bg-muted/30 rounded">
+                        Cannot edit this field type directly
+                      </div>
+                    )}
+                  </div>
+                ))
+            )}
+
+            {hasItemChanges && (
+              <div className="bg-primary/10 text-primary p-3 rounded-md text-sm mt-4">
+                This item has unsaved changes.
+              </div>
+            )}
+          </div>
+
+          {/* Right side: Preview */}
+          <div className="bg-card p-4 rounded-lg border border-border/30">
+            <h4 className="text-sm uppercase tracking-wide text-muted-foreground font-medium mb-4">Preview</h4>
+
+            <div className="bg-background/50 p-4 rounded-md min-h-[200px] border border-border/20">
+              {/* Preview different element types */}
+              {selectedItem.type === "heading" && (
+                <div className="preview-heading">
+                  <h2 className="text-2xl font-bold text-foreground">{selectedItem.content.text || "Heading text"}</h2>
+                </div>
+              )}
+
+              {selectedItem.type === "text" && (
+                <div className="preview-text">
+                  <p className="text-base text-foreground">{selectedItem.content.text || "Text content"}</p>
+                </div>
+              )}
+
+              {selectedItem.type === "paragraph" && (
+                <div className="preview-paragraph">
+                  <p className="text-base text-muted-foreground leading-relaxed">
+                    {selectedItem.content.text || "Paragraph content goes here..."}
+                  </p>
+                </div>
+              )}
+
+              {selectedItem.type === "button" && (
+                <div className="preview-button">
+                  <Button>{selectedItem.content.text || "Button"}</Button>
+                </div>
+              )}
+
+              {selectedItem.type === "label" && (
+                <div className="preview-label">
+                  <Label>{selectedItem.content.text || "Label"}</Label>
+                </div>
+              )}
+
+              {/* Generic preview for other types */}
+              {!["heading", "text", "paragraph", "button", "label"].includes(selectedItem.type) && (
+                <div className="preview-generic">
+                  <p className="text-muted-foreground text-sm mb-2">Preview for {selectedItem.type}:</p>
+                  <div className="bg-muted/20 p-3 rounded border border-border/20">
+                    {selectedItem.content.title && (
+                      <h3 className="text-lg font-medium mb-1">{selectedItem.content.title}</h3>
+                    )}
+                    {selectedItem.content.name && (
+                      <h3 className="text-lg font-medium mb-1">{selectedItem.content.name}</h3>
+                    )}
+                    {selectedItem.content.description && (
+                      <p className="text-sm text-muted-foreground">{selectedItem.content.description}</p>
+                    )}
+                    {selectedItem.content.text && (
+                      <p className="text-sm text-muted-foreground">{selectedItem.content.text}</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+
+            <div className="mt-4 text-xs text-muted-foreground">
+              <p>This preview shows an approximation of how this content will appear on the site.</p>
+            </div>
+          </div>
         </div>
       </div>
     );

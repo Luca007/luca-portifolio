@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react';
-import SimpleFixedNavigation from "@/components/SimpleFixedNavigation"; // Usar o novo componente de navegação
+import ClientBody from './ClientBody';
+import SimpleFixedNavigation from "@/components/SimpleFixedNavigation";
 import Hero from "@/components/Hero";
 import InteractiveBackground from "@/components/InteractiveBackground";
 
@@ -21,7 +22,7 @@ const SectionPlaceholder = ({ height = "min-h-screen", id = "" }) => (
 
 export default function Home() {
   return (
-    <>
+    <ClientBody>
       <InteractiveBackground />
       <SimpleFixedNavigation />
       <main className="min-h-screen relative overflow-x-hidden">
@@ -66,6 +67,6 @@ export default function Home() {
       <Suspense fallback={null}>
         <AdminPanel />
       </Suspense>
-    </>
+    </ClientBody>
   );
 }

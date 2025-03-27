@@ -1,23 +1,48 @@
 "use client";
 
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useEdit } from "@/contexts/EditContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Briefcase, MapPin, Calendar } from "lucide-react";
+import { EditableItem } from "@/components/ui/EditableItem";
 
 export default function Experience() {
   const { content } = useLanguage();
+  const { isAdmin, user } = useAuth();
+  const { isEditMode, handleEdit } = useEdit();
 
   return (
     <section id="experiences" className="py-20 bg-muted/30">
       <div className="container">
-        <h2 className="section-heading">
-          <span>{content.experiences.title}</span>
-          <span></span>
-        </h2>
+        <EditableItem
+          id="experiences-title"
+          path={["experiences"]}
+          type="heading"
+          content={{ text: content.experiences.title, type: "heading" }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode}
+          onEdit={handleEdit}
+        >
+          <h2 className="section-heading">
+            <span>{content.experiences.title}</span>
+            <span></span>
+          </h2>
+        </EditableItem>
 
-        <p className="text-lg text-muted-foreground mb-12 max-w-3xl mx-auto text-center">
-          {content.experiences.description}
-        </p>
+        <EditableItem
+          id="experiences-description"
+          path={["experiences"]}
+          type="text"
+          content={{ text: content.experiences.description, type: "text" }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode}
+          onEdit={handleEdit}
+        >
+          <p className="text-lg text-muted-foreground mb-12 max-w-3xl mx-auto text-center">
+            {content.experiences.description}
+          </p>
+        </EditableItem>
 
         <div className="relative max-w-4xl mx-auto">
           {/* Timeline line */}
@@ -33,42 +58,52 @@ export default function Experience() {
                 </div>
 
                 {/* Experience card */}
-                <Card className="w-full md:w-auto bg-gradient-to-br from-background to-muted/30 border border-border/30 shadow-sm hover:shadow-md transition-all duration-300">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col space-y-4">
-                      <div>
-                        <h3 className="text-xl font-semibold text-gradient mb-1">{experience.position}</h3>
-                        <div className="flex items-center space-x-3 mb-4">
-                          <span className="flex items-center text-sm text-muted-foreground">
-                            <Briefcase className="h-4 w-4 mr-1" />
-                            {experience.company}
-                          </span>
-                          <span className="flex items-center text-sm text-muted-foreground">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            {experience.location}
-                          </span>
-                          <span className="flex items-center text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4 mr-1" />
-                            {experience.period}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-muted-foreground text-sm">{experience.description}</p>
-
-                      {experience.responsibilities.length > 0 && (
+                <EditableItem
+                  id={`experience-${index}`}
+                  path={["experiences", "items"]}
+                  type="experience"
+                  content={experience}
+                  isAdmin={isAdmin}
+                  isEditMode={isEditMode}
+                  onEdit={handleEdit}
+                >
+                  <Card className="w-full md:w-auto bg-gradient-to-br from-background to-muted/30 border border-border/30 shadow-sm hover:shadow-md transition-all duration-300">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col space-y-4">
                         <div>
-                          <h4 className="font-medium mb-2">Responsibilities:</h4>
-                          <ul className="space-y-1 list-disc pl-5 text-sm text-muted-foreground">
-                            {experience.responsibilities.map((responsibility, i) => (
-                              <li key={i}>{responsibility}</li>
-                            ))}
-                          </ul>
+                          <h3 className="text-xl font-semibold text-gradient mb-1">{experience.position}</h3>
+                          <div className="flex items-center space-x-3 mb-4">
+                            <span className="flex items-center text-sm text-muted-foreground">
+                              <Briefcase className="h-4 w-4 mr-1" />
+                              {experience.company}
+                            </span>
+                            <span className="flex items-center text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4 mr-1" />
+                              {experience.location}
+                            </span>
+                            <span className="flex items-center text-sm text-muted-foreground">
+                              <Calendar className="h-4 w-4 mr-1" />
+                              {experience.period}
+                            </span>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+
+                        <p className="text-muted-foreground text-sm">{experience.description}</p>
+
+                        {experience.responsibilities.length > 0 && (
+                          <div>
+                            <h4 className="font-medium mb-2">Responsibilities:</h4>
+                            <ul className="space-y-1 list-disc pl-5 text-sm text-muted-foreground">
+                              {experience.responsibilities.map((responsibility, i) => (
+                                <li key={i}>{responsibility}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </EditableItem>
               </div>
             ))}
           </div>
