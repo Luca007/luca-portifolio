@@ -1,0 +1,230 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 220 100% 56%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 5.9% 10%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
+
+    /* Animation variables */
+    --animation-duration-slow: 800ms;
+    --animation-duration-medium: 500ms;
+    --animation-duration-fast: 300ms;
+    --animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 222 47% 5%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 65%;
+    --primary-foreground: 222 47% 5%;
+    --secondary: 217 91% 15%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 47% 12%;
+    --muted-foreground: 217 30% 70%;
+    --accent: 217 91% 15%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 47% 15%;
+    --input: 217 47% 15%;
+    --ring: 224 76% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+
+    /* Add content-visibility for better rendering performance */
+    content-visibility: auto;
+  }
+
+  /* Custom scrollbar refinements */
+  ::-webkit-scrollbar {
+    width: 6px; /* Reduced from 8px */
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/20 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/30 rounded-full transition-colors hover:bg-primary/50;
+  }
+
+  /* Smooth scrolling - only on non-mobile devices */
+  @media (min-width: 768px) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  html {
+    overflow-x: hidden;
+  }
+
+  /* Smooth font rendering */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+
+    /* Add backface visibility to improve performance */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+
+    /* Use hardware acceleration when available */
+    transform: translateZ(0);
+  }
+
+  /* Focus outline for accessibility */
+  :focus-visible {
+    @apply outline-2 outline-primary/70 outline-offset-2;
+  }
+
+  /* Performance optimizations for animations */
+  .will-change-transform {
+    will-change: transform;
+  }
+
+  /* Only use custom cursor on non-touch devices and larger screens */
+  @media (hover: hover) and (min-width: 768px) {
+    .custom-cursor {
+      cursor: none;
+    }
+  }
+
+  /* Desktop-specific enhancements */
+  @media (min-width: 768px) {
+    .desktop-enhanced {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .desktop-enhanced:hover {
+      transform: translateY(-3px);
+      @apply shadow-lg shadow-primary/20;
+    }
+  }
+
+  /* Mobile enhancements - reduce motion and animations */
+  @media (max-width: 767px) {
+    * {
+      animation-duration: 0.5s !important; /* Limit all animations to 0.5s max */
+    }
+
+    /* Reduce motion on low-end devices */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  }
+}
+
+/* Layer components for better CSS organization */
+@layer components {
+  .section-heading {
+    @apply text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 text-center relative flex flex-col items-center;
+  }
+
+  .section-heading::after {
+    content: "";
+    @apply bg-primary/50 h-1 w-16 rounded-full mt-4;
+  }
+
+  .section-heading span:last-child {
+    @apply text-primary;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-500 to-primary;
+  }
+
+  .bg-size-200 {
+    background-size: 200% auto;
+  }
+
+  .bg-right-bottom {
+    background-position: right bottom;
+  }
+
+  /* Optimize content loading */
+  .content-wrapper {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 500px; /* Provide size hint */
+  }
+
+  /* Optimize card rendering */
+  .optimized-card {
+    contain: content;
+    content-visibility: auto;
+  }
+
+  /* Render critical content first */
+  .render-critical {
+    content-visibility: visible;
+  }
+}
+
+/* Animations with reduced complexity for better performance */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(0.98); }
+}
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive padding utilities */
+@layer utilities {
+  .responsive-px {
+    @apply px-4 sm:px-6 md:px-8 lg:px-10;
+  }
+
+  .responsive-py {
+    @apply py-10 md:py-14 lg:py-20;
+  }
+}
