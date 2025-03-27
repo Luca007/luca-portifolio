@@ -144,7 +144,7 @@ export default function Footer() {
               <div className="flex flex-col space-y-4">
                 <motion.a
                   href="mailto:luca.clerot@gmail.com"
-                  className="text-muted-foreground hover:text-primary transition-colors inline-block"
+                  className="text-muted-foreground hover:text-primary transition-colors inline-block relative"
                   whileHover={{ x: 3 }}
                 >
                   luca.clerot@gmail.com
@@ -153,7 +153,7 @@ export default function Footer() {
                   href="https://github.com/Luca007"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary transition-colors inline-block"
+                  className="text-muted-foreground hover:text-primary transition-colors inline-block relative"
                   whileHover={{ x: 3 }}
                 >
                   github.com/Luca007
@@ -205,9 +205,9 @@ export default function Footer() {
             transition={{ delay: 0.5 }}
           >
             {content.footer.poweredBy}
-            <a href="https://nextjs.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary mx-1">Next.js</a>
+            <a href="https://nextjs.org" target="_blank" rel="noopener noreferrer" className="relative hover:text-primary mx-1 transition-colors">Next.js</a>
             <span className="mx-1">+</span>
-            <a href="https://tailwindcss.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary mx-1">Tailwind</a>
+            <a href="https://tailwindcss.com" target="_blank" rel="noopener noreferrer" className="relative hover:text-primary mx-1 transition-colors">Tailwind</a>
             <span className="mx-1">+</span>
             <Heart className="h-3 w-3 text-red-500 mx-1" />
           </motion.p>

@@ -1,0 +1,63 @@
+/* Styles for absolute positioned header */
+
+/* Core absolute header styles */
+#absolute-header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 9999 !important;
+  transform: translateZ(0) !important; /* Force hardware acceleration */
+  will-change: transform !important;
+  backface-visibility: hidden !important;
+}
+
+/* Add styles for the body when it has an absolute header */
+body.has-absolute-header {
+  position: relative;
+}
+
+/* Override any conflicting styles */
+[id="absolute-header"],
+header#absolute-header,
+#absolute-header.absolute,
+#absolute-header.fixed,
+#absolute-header.sticky,
+header[id="absolute-header"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 9999 !important;
+}
+
+/* Make sure the progress bar stays above the header */
+.fixed-progress-bar,
+div[class*="z-[99999]"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 99999 !important;
+  pointer-events: none !important;
+}
+
+/* Adjustments for safari and iOS */
+@supports (-webkit-overflow-scrolling: touch) {
+  #absolute-header {
+    position: fixed !important;
+    -webkit-transform: translateZ(0) !important;
+    transform: translateZ(0) !important;
+  }
+}
+
+/* Fix for Firefox */
+@-moz-document url-prefix() {
+  #absolute-header {
+    position: fixed !important;
+    transform: translateZ(0) !important;
+  }
+}

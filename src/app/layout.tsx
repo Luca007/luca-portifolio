@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
 import "@/app/globals.css";
+import "@/app/fixed-header.css"; // Usar o novo CSS do header fixo
 import { cn } from "@/lib/utils";
 import ClientBody from "./ClientBody";
 

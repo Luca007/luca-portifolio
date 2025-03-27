@@ -258,21 +258,9 @@ export default function Skills() {
 
   return (
     <section id="skills" className="py-16 sm:py-24 bg-[#050e1b] relative">
-      {/* Top transition wave - fixed */}
-      <div className="absolute -top-12 inset-x-0 h-24 overflow-hidden">
-        <svg
-          viewBox="0 0 1200 120"
-          className="absolute bottom-0 fill-[#050e1b] w-full"
-          preserveAspectRatio="none"
-          style={{ height: '50px' }}
-        >
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-        </svg>
-      </div>
-
       {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 rounded-full filter blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-blue-500/5 rounded-full filter blur-3xl"></div>
+      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 rounded-full filter blur-xl opacity-40"></div>
+      <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-blue-500/5 rounded-full filter blur-xl opacity-40"></div>
 
       <div className="container relative z-10 px-4 sm:px-6">
         <motion.div
@@ -307,18 +295,6 @@ export default function Skills() {
           {renderSkillCards(languageSkills, content.skills.skillCategories.languages,
             <Languages className="mr-2 h-5 w-5 text-primary" />)}
         </motion.div>
-      </div>
-
-      {/* Bottom transition wave - fixed */}
-      <div className="absolute -bottom-12 inset-x-0 h-24 overflow-hidden">
-        <svg
-          viewBox="0 0 1200 120"
-          className="absolute top-0 fill-[#050e1b] w-full"
-          preserveAspectRatio="none"
-          style={{ height: '50px', transform: 'rotate(180deg)' }}
-        >
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-        </svg>
       </div>
     </section>
   );

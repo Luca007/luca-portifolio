@@ -65,6 +65,8 @@
 
     /* Add content-visibility for better rendering performance */
     content-visibility: auto;
+    min-height: 100%;
+    overflow-x: hidden;
   }
 
   /* Custom scrollbar refinements */
@@ -90,6 +92,8 @@
 
   html {
     overflow-x: hidden;
+    height: 100%;
+    overflow-y: auto;
   }
 
   /* Smooth font rendering */
@@ -227,4 +231,71 @@
   .responsive-py {
     @apply py-10 md:py-14 lg:py-20;
   }
+}
+
+/* Adjust section padding to account for fixed header */
+section {
+  scroll-margin-top: 80px; /* Ensure sections start below the header when navigating */
+  padding-top: 20px; /* Add padding to the top of all sections */
+}
+
+/* Fix footer hover animations */
+footer a {
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+footer a:hover {
+  color: hsl(var(--primary));
+}
+
+footer a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 1px;
+  bottom: -2px;
+  left: 0;
+  background-color: hsl(var(--primary));
+  transition: width 0.3s ease;
+}
+
+footer a:hover::after {
+  width: 100%;
+}
+
+/* Ensure header is always visible at the top */
+#main-header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 9999 !important;
+}
+
+/* Special selector for header that ensures it stays at the top regardless of other styles */
+body header,
+main header,
+#main-header,
+header[id="main-header"],
+header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 9999 !important;
+}
+
+/* Ensure the progress bar always stays on top */
+.fixed-progress-bar,
+div[class*="z-[99999]"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 99999 !important;
+  pointer-events: none;
 }

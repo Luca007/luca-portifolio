@@ -255,18 +255,6 @@ export default function About() {
           </motion.div>
         </motion.div>
       </div>
-
-      {/* Bottom wave for smooth transition to next section - fixed */}
-      <div className="absolute -bottom-12 inset-x-0 h-24 overflow-hidden">
-        <svg
-          viewBox="0 0 1200 120"
-          className="absolute top-0 fill-[#050e1b] w-full"
-          preserveAspectRatio="none"
-          style={{ height: '50px', transform: 'rotate(180deg)' }}
-        >
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-        </svg>
-      </div>
     </section>
   );
 }

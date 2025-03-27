@@ -153,14 +153,14 @@ export default function Hero() {
   };
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center overflow-hidden" ref={containerRef}>
+    <section id="home" className="relative min-h-screen flex items-center overflow-hidden pt-16" ref={containerRef}>
       {/* Animated background elements with mouse interaction */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <motion.div
-          className="absolute top-1/4 -left-20 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl"
+          className="absolute top-1/4 -left-20 w-96 h-96 bg-primary/10 rounded-full filter blur-xl"
           animate={{
             scale: [1, 1.1, 1],
-            opacity: [0.5, 0.7, 0.5],
+            opacity: [0.3, 0.5, 0.3],
             x: mouseXMovement.current,
             y: mouseYMovement.current,
           }}
@@ -186,10 +186,10 @@ export default function Hero() {
           }}
         />
         <motion.div
-          className="absolute bottom-1/4 -right-20 w-96 h-96 bg-blue-500/10 rounded-full filter blur-3xl"
+          className="absolute bottom-1/4 -right-20 w-96 h-96 bg-blue-500/10 rounded-full filter blur-xl"
           animate={{
             scale: [1, 1.2, 1],
-            opacity: [0.5, 0.6, 0.5],
+            opacity: [0.3, 0.4, 0.3],
             x: -mouseXMovement.current * 0.8, // Opposite direction for parallax effect
             y: -mouseYMovement.current * 0.8,
           }}
@@ -440,34 +440,6 @@ export default function Hero() {
             )}
           </AnimatePresence>
 
-          {/* Wave decoration at the bottom */}
-          <div className="absolute bottom-0 left-0 w-full overflow-hidden">
-            <motion.svg
-              viewBox="0 0 1000 200"
-              className="fill-muted/10 w-full h-24"
-              preserveAspectRatio="none"
-              initial={{ y: 100 }}
-              animate={{ y: 0 }}
-              transition={{ duration: 1, delay: 0.5 }}
-            >
-              <motion.path
-                d={curvePath}
-                animate={{
-                  d: [
-                    "M0,96 C200,150 400,20 500,96 C600,150 800,50 1000,96 V192 H0 Z",
-                    "M0,96 C250,20 350,150 500,96 C650,20 750,150 1000,96 V192 H0 Z",
-                    "M0,96 C200,150 400,20 500,96 C600,150 800,50 1000,96 V192 H0 Z"
-                  ]
-                }}
-                transition={{
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                  duration: 15,
-                  ease: "easeInOut"
-                }}
-              />
-            </motion.svg>
-          </div>
         </motion.div>
       </div>
     </section>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Logo from "@/components/Logo";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function Header() {
+export default function AbsoluteHeader() {
   const { content } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -38,6 +38,44 @@ export default function Header() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Force absolute positioning through style attribute
+  useEffect(() => {
+    // Function to set the header to absolute position
+    const forceAbsolutePosition = () => {
+      const headerElement = document.getElementById('absolute-header');
+      if (headerElement) {
+        // Apply absolute positioning with high specificity through style
+        Object.assign(headerElement.style, {
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          right: '0',
+          width: '100%',
+          zIndex: '9999',
+          transform: 'translateZ(0)', // Hardware acceleration
+          backfaceVisibility: 'hidden', // Prevent flickering
+        });
+      }
+    };
+
+    // Apply on mount and component update
+    forceAbsolutePosition();
+
+    // Also apply on scroll and resize
+    window.addEventListener('scroll', forceAbsolutePosition, { passive: true });
+    window.addEventListener('resize', forceAbsolutePosition, { passive: true });
+
+    // Apply again after a delay to handle any late-loading resources
+    setTimeout(forceAbsolutePosition, 100);
+    setTimeout(forceAbsolutePosition, 500);
+    setTimeout(forceAbsolutePosition, 1000);
+
+    return () => {
+      window.removeEventListener('scroll', forceAbsolutePosition);
+      window.removeEventListener('resize', forceAbsolutePosition);
+    };
   }, []);
 
   const handleNavClick = (id: string, isExternal: boolean = false) => {
@@ -90,6 +128,7 @@ export default function Header() {
 
   return (
     <header
+      id="absolute-header"
       className={cn(
         "absolute top-0 left-0 right-0 z-[9999] py-3 transition-all duration-200 w-full",
         isScrolled
@@ -97,13 +136,15 @@ export default function Header() {
           : "bg-background/50 backdrop-blur-sm"
       )}
       style={{
-        position: 'absolute',
+        position: 'fixed',
         top: 0,
+        left: 0,
+        right: 0,
         width: '100%',
         zIndex: 9999,
-        transition: 'all 0.2s ease-in-out'
+        transform: 'translateZ(0)',
+        backfaceVisibility: 'hidden',
       }}
-      id="main-header"
     >
       <div className="container flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2 group">
@@ -190,7 +231,7 @@ export default function Header() {
                             href={item.href}
                             onClick={() => {
                               setIsMobileMenuOpen(false);
-                              handleNavClick(item.id); // Updated to use fast smooth scrolling
+                              handleNavClick(item.id);
                             }}
                             className={cn(
                               "p-3 rounded-md flex items-center transition-all",
