@@ -1,236 +1,334 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEdit } from "@/contexts/EditContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, Edit } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
-import { motion, AnimatePresence } from "framer-motion";
+import { AdminLoginModal } from "@/components/ui/AdminLoginModal";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
-export default function Header() {
+export default function SimpleFixedHeader() {
   const { content } = useLanguage();
+  const { user, isAdmin, signOut } = useAuth();
+  const { isEditMode, setEditMode } = useEdit();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
+  // Scroll handler with debounce
   useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
 
-      // Detect active section based on scroll position
-      const sections = document.querySelectorAll("section[id]");
-      const scrollPosition = window.scrollY + 100; // Add offset for better UX
+      scrollTimeout = setTimeout(() => {
+        const currentScrollY = window.scrollY;
+        setIsScrolled(currentScrollY > 10);
 
-      sections.forEach((section) => {
-        const sectionTop = (section as HTMLElement).offsetTop;
-        const sectionHeight = (section as HTMLElement).offsetHeight;
-        const sectionId = section.getAttribute("id") || "";
+        const sections = document.querySelectorAll("section[id]");
+        const scrollPosition = currentScrollY + 100; // Adjusted offset for better accuracy
 
-        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-          setActiveSection(sectionId);
+        let currentSection = "home"; // Default to home
+        sections.forEach((section) => {
+          const sectionTop = (section as HTMLElement).offsetTop;
+          const sectionHeight = (section as HTMLElement).offsetHeight;
+          const sectionId = section.getAttribute("id") || "";
+
+          if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+            currentSection = sectionId;
+          }
+        });
+        // Handle case where user scrolls past the last section
+        const lastSection = sections[sections.length - 1];
+        if (lastSection && scrollPosition >= (lastSection as HTMLElement).offsetTop + (lastSection as HTMLElement).offsetHeight) {
+          currentSection = lastSection.getAttribute("id") || "home";
         }
-      });
+
+        setActiveSection(currentSection);
+      }, 50); // Reduced debounce delay for faster feedback
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Initial check in case the page loads scrolled
+    handleScroll();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
   }, []);
 
-  const handleNavClick = (id: string, isExternal: boolean = false) => {
-    if (!isExternal) {
-      setActiveSection(id);
+  // Scroll to section function
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (!element) return;
 
-      // Fast smooth scrolling with more aggressive settings
-      const element = document.getElementById(id);
-      if (element) {
-        // Calculate header height to offset scroll position
-        const headerHeight = 60; // Approximate header height in pixels
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
+    const headerElement = document.getElementById("fixed-header");
+    const headerHeight = headerElement ? headerElement.offsetHeight : 60; // Dynamically get header height or fallback
+    const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+    const offsetPosition = elementPosition - headerHeight;
 
-        // Cancel any ongoing scroll animations
-        if ('scrollEndCallback' in window) {
-          //@ts-ignore
-          window.scrollEndCallback?.();
-        }
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: "smooth"
+    });
+    // Manually set active section immediately for better UX
+    setActiveSection(id);
+    // Close mobile menu if open
+    setIsMobileMenuOpen(false);
+  };
 
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "auto" // Use 'auto' for immediate scrolling with no delay
-        });
+  // Navigation items
+  const navigationItems = [
+    { name: content.navigation.home, id: "home" },
+    { name: content.navigation.about, id: "about" },
+    { name: content.navigation.skills, id: "skills" },
+    { name: content.navigation.experiences, id: "experiences" },
+    { name: content.navigation.education, id: "education" },
+    { name: content.navigation.projects, id: "projects" },
+    { name: content.navigation.contact, id: "contact" }
+  ];
 
-        // After immediate scroll, do a small smooth adjustment for better UX
-        setTimeout(() => {
-          const newElementPosition = element.getBoundingClientRect().top;
-          if (Math.abs(newElementPosition - headerHeight) > 5) {
-            window.scrollBy({
-              top: newElementPosition - headerHeight,
-              behavior: "smooth"
-            });
-          }
-        }, 10);
-      }
+  // Handle logo click
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default link behavior
+    if (isAdmin) {
+      setEditMode(!isEditMode);
+    } else if (user) {
+      // If a non-admin user clicks the logo, maybe scroll to top? Or do nothing?
+      // Currently set to sign out, which might be confusing. Let's scroll to top.
+      // signOut(); // Removed sign out on logo click for non-admin
+      scrollToSection("home"); // Scroll to top instead
+    } else {
+      setLoginModalOpen(true);
     }
   };
 
-  // Navigation items array without the "Blog" page
-  const navigationItems = [
-    { name: content.navigation.home, href: "#home", id: "home" },
-    { name: content.navigation.about, href: "#about", id: "about" },
-    { name: content.navigation.skills, href: "#skills", id: "skills" },
-    { name: content.navigation.experiences, href: "#experiences", id: "experiences" },
-    { name: content.navigation.education, href: "#education", id: "education" },
-    { name: content.navigation.projects, href: "#projects", id: "projects" },
-    { name: content.navigation.contact, href: "#contact", id: "contact" }
-  ];
+  // Handle admin icon click (separate from logo)
+  const handleAdminIconClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (isAdmin) {
+          setEditMode(!isEditMode);
+      } else if (!user) {
+          setLoginModalOpen(true);
+      }
+      // If user is logged in but not admin, this button isn't shown or does nothing
+  };
+
 
   return (
     <header
+      id="fixed-header" // Keep ID for scroll calculation
       className={cn(
-        "absolute top-0 left-0 right-0 z-[9999] py-3 transition-all duration-200 w-full",
+        "fixed top-0 left-0 right-0 w-full z-[50]", // Position fixed, full width, top, z-index
+        "py-3", // Vertical padding
+        "transition-all duration-300 ease-in-out", // Smooth transitions
+        "backdrop-blur-md", // Background blur effect
         isScrolled
-          ? "bg-background/95 backdrop-blur-lg shadow-md"
-          : "bg-background/50 backdrop-blur-sm"
+          ? "bg-background/85 shadow-lg" // Scrolled state: more opaque background, larger shadow
+          : "bg-background/50 shadow-none" // Initial state: more transparent background, no shadow
       )}
-      style={{
-        position: 'absolute',
-        top: 0,
-        width: '100%',
-        zIndex: 9999,
-        transition: 'all 0.2s ease-in-out'
-      }}
-      id="main-header"
     >
       <div className="container flex items-center justify-between">
-        <Link href="/" className="flex items-center space-x-2 group">
-          <Logo className="h-8 w-8 group-hover:text-primary transition-colors duration-300" />
-          <span className="font-bold text-xl group-hover:text-primary transition-colors duration-300">Luca Clerot</span>
-        </Link>
+        {/* Left side: Logo and Badges */}
+        <div className="flex items-center gap-2">
+          {/* Logo - always scrolls to top */}
+           <Link href="#home" onClick={(e) => { e.preventDefault(); scrollToSection("home"); }} className="flex items-center space-x-2 group cursor-pointer">
+             <Logo className={cn(
+               "h-8 w-8 transition-colors duration-300 text-foreground/80 group-hover:text-primary",
+               // Keep admin/edit mode colors if needed, but applied differently now
+             )} />
+             <span className={cn(
+               "font-bold text-xl transition-colors duration-300 text-foreground/90 group-hover:text-primary",
+             )}>
+               Luca Clerot
+             </span>
+           </Link>
+
+          {/* Admin/Edit Controls - Moved next to logo */}
+          {isAdmin && (
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleAdminIconClick}
+                    className={cn(
+                      "ml-1 rounded-full h-8 w-8",
+                      isEditMode ? "bg-green-500/20 text-green-400 hover:bg-green-500/30 hover:text-green-300"
+                                 : "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 hover:text-blue-300"
+                    )}
+                  >
+                    <Edit size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isEditMode ? "Exit Edit Mode" : "Enter Edit Mode"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          {!user && !isAdmin && (
+             <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                   <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleAdminIconClick} // Opens login modal
+                    className="ml-1 rounded-full h-8 w-8 text-foreground/60 hover:bg-muted/50 hover:text-primary"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shield-ellipsis"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="M12 11.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/><path d="M17 11.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/><path d="M7 11.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Admin Login</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
+        </div>
 
         {/* Desktop navigation */}
         <nav className="hidden md:flex items-center space-x-1">
-          {navigationItems.map((item) => {
-            const isActive = activeSection === item.id;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "relative px-3 py-2 text-foreground/80 transition-colors rounded-md group",
-                  isActive
-                    ? "text-primary font-medium"
-                    : "hover:text-primary hover:bg-muted/50"
-                )}
-                onClick={() => handleNavClick(item.id)}
-              >
-                {item.name}
-                {isActive && (
-                  <motion.span
-                    className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded"
-                    layoutId="activeIndicator"
-                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                  />
-                )}
-              </Link>
-            );
-          })}
-          <div className="flex items-center ml-2 space-x-1">
+          {navigationItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => scrollToSection(item.id)}
+              className={cn(
+                "relative px-3 py-2 text-sm transition-colors rounded-md group", // Adjusted padding/text size
+                activeSection === item.id
+                  ? "text-primary font-medium"
+                  : "text-foreground/70 hover:text-primary hover:bg-muted/50"
+              )}
+              aria-current={activeSection === item.id ? "page" : undefined}
+            >
+              {item.name}
+              {/* Underline effect for active item */}
+              <span className={cn(
+                  "absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-4/5",
+                  activeSection === item.id ? "w-4/5" : "w-0"
+              )}></span>
+            </button>
+          ))}
+          <div className="flex items-center pl-2 space-x-1 border-l border-border/20 ml-2"> {/* Separator */}
             <ThemeSwitcher />
             <LanguageSwitcher />
+            {user && (
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => signOut()}
+                      className="text-foreground/70 hover:text-destructive hover:bg-destructive/10" // Destructive indication
+                    >
+                      <LogOut size={18} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Sign Out</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </nav>
 
-        {/* Mobile navigation */}
+        {/* Mobile navigation Trigger & Controls */}
         <div className="md:hidden flex items-center space-x-1">
-          <div className="flex items-center">
-            <ThemeSwitcher />
-            <LanguageSwitcher />
+          <ThemeSwitcher />
+          <LanguageSwitcher />
+          {user && (
+             <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => signOut()}
+                      className="text-foreground/70 hover:text-destructive hover:bg-destructive/10 h-9 w-9"
+                    >
+                      <LogOut size={18} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Sign Out</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+          )}
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="ml-1 text-foreground/80 hover:bg-muted/50 h-9 w-9"
+                aria-label="Toggle menu"
+              >
+                <Menu size={20} />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[80vw] max-w-[300px] p-0 flex flex-col">
+              {/* Mobile Menu Header */}
+              <div className="p-4 border-b border-border/10 flex justify-between items-center">
+                 <Link href="#home" onClick={(e) => { e.preventDefault(); scrollToSection("home"); setIsMobileMenuOpen(false); }} className="flex items-center space-x-2 group cursor-pointer">
+                    <Logo className="h-7 w-7 text-primary" />
+                     <span className="font-bold text-lg text-primary">Luca Clerot</span>
+                 </Link>
+                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)} className="h-8 w-8 rounded-full">
+                   <X size={20} className="text-muted-foreground" />
+                </Button>
+              </div>
 
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <button
-                  className="p-2 ml-1 text-foreground hover:bg-muted/50 rounded-md transition-colors"
-                  aria-label="Toggle menu"
-                >
-                  <Menu size={22} />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[80vw] sm:w-[350px] p-0">
-                <div className="flex flex-col h-full bg-gradient-to-b from-background to-background/95">
-                  <div className="p-6 border-b border-border/10">
-                    <div className="flex items-center justify-between mb-6">
-                      <Logo className="h-8 w-8 text-primary" />
-                      <button
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="p-2 rounded-full hover:bg-muted/50 transition-colors"
-                      >
-                        <X size={20} className="text-muted-foreground hover:text-primary transition-colors" />
-                      </button>
-                    </div>
+              {/* Mobile Menu Navigation */}
+              <nav className="flex-1 overflow-auto py-4 px-4 space-y-1">
+                {navigationItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollToSection(item.id)} // Already closes menu
+                    className={cn(
+                      "w-full p-3 text-left rounded-md flex items-center justify-between transition-all text-base", // Ensure full width
+                      activeSection === item.id
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-foreground/80 hover:bg-muted/50 hover:text-primary"
+                    )}
+                    aria-current={activeSection === item.id ? "page" : undefined}
+                  >
+                    <span>{item.name}</span>
+                    {activeSection === item.id && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                    )}
+                  </button>
+                ))}
+              </nav>
 
-                    {/* Active section indicator in mobile - simplified */}
-                    <div className="text-sm text-muted-foreground mb-2">
-                      <span className="font-medium text-primary">
-                        {navigationItems.find(item => item.id === activeSection)?.name || ""}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 overflow-auto py-4 px-4">
-                    <nav className="flex flex-col space-y-1">
-                      {navigationItems.map((item) => {
-                        const isActive = activeSection === item.id;
-                        return (
-                          <Link
-                            key={item.name}
-                            href={item.href}
-                            onClick={() => {
-                              setIsMobileMenuOpen(false);
-                              handleNavClick(item.id); // Updated to use fast smooth scrolling
-                            }}
-                            className={cn(
-                              "p-3 rounded-md flex items-center transition-all",
-                              isActive
-                                ? "bg-primary/10 text-primary font-medium"
-                                : "text-foreground/80 hover:bg-muted/50 hover:text-primary"
-                            )}
-                          >
-                            <span className="text-base">{item.name}</span>
-                            {isActive && (
-                              <motion.span
-                                className="ml-auto w-1.5 h-1.5 rounded-full bg-primary"
-                                layoutId="activeMobileIndicator"
-                                transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                              />
-                            )}
-                          </Link>
-                        );
-                      })}
-                    </nav>
-                  </div>
-
-                  <div className="p-6 border-t border-border/10 mt-auto">
-                    <div className="flex justify-between items-center">
-                      <div className="text-sm text-muted-foreground">
-                        <p>Luca Clerot</p>
-                        <p>Full Stack Developer</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <ThemeSwitcher />
-                        <LanguageSwitcher />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+              {/* Mobile Menu Footer (Optional: could add theme/lang switchers here too) */}
+              <div className="p-4 border-t border-border/10">
+                {/* Add footer content if needed */}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
+
+      {/* Admin Login Modal */}
+      <AdminLoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
     </header>
   );
 }

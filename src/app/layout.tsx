@@ -1,8 +1,4 @@
 import "./globals.css";
-import "./absolute-header.css";
-import "./sticky-header.css";
-import "./fixed-header.css";
-import "./fixes.css";
 
 import type { Metadata } from "next";
 import Providers from "@/components/Providers";
