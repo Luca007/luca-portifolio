@@ -299,3 +299,13 @@ div[class*="z-[99999]"] {
   z-index: 99999 !important;
   pointer-events: none;
 }
+
+/* Progress bar animation */
+@keyframes progressBar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0;
+  }
+}

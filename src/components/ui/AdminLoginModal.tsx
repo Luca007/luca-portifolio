@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { LockKeyhole, LogIn, AlertCircle } from "lucide-react";
+import { toast } from "@/components/ui/toast";
 
 interface AdminLoginModalProps {
   open: boolean;
@@ -31,8 +32,18 @@ export function AdminLoginModal({ open, onOpenChange }: AdminLoginModalProps) {
       onOpenChange(false);
       setEmail("");
       setPassword("");
+      toast({
+        title: "Login Successful",
+        description: "You have successfully logged in.",
+        variant: "success",
+      });
     } catch (error) {
       setLoginError("Invalid email or password. Please try again.");
+      toast({
+        title: "Login Failed",
+        description: "Invalid email or password. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

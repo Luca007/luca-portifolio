@@ -20,6 +20,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { toast } from "@/components/ui/toast";
 
 const ContactInfoCard = ({ contactInfo, currentLanguage }) => (
   <Card className="bg-gradient-to-br from-background to-muted/20 border border-border/30 shadow-sm h-full hover:shadow-lg hover:shadow-primary/5 transition-all duration-500">
@@ -241,9 +242,19 @@ export default function Contact() {
 
       setSubmitted(true);
       formRef.current.reset();
+      toast({
+        title: "Success",
+        description: "Your message has been sent successfully.",
+        variant: "success",
+      });
     } catch (error) {
       console.error("Error sending message:", error);
       setError(error instanceof Error ? error.message : content.contact.form.error);
+      toast({
+        title: "Error",
+        description: "There was an error sending your message. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }

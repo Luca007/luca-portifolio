@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { FileDown, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import generateResumePDF from "@/lib/pdfGenerator";
+import { toast } from "@/components/ui/toast";
 
 export default function ResumeDownload() {
   const { content, currentLanguage } = useLanguage();
@@ -34,11 +35,21 @@ export default function ResumeDownload() {
         setTimeout(() => {
           URL.revokeObjectURL(pdfBlobUrl);
           setIsLoading(false);
+          toast({
+            title: "Download Successful",
+            description: "The PDF has been downloaded successfully.",
+            variant: "success",
+          });
         }, 100);
       }, 800);
     } catch (error) {
       console.error("Error generating PDF:", error);
       setIsLoading(false);
+      toast({
+        title: "Download Failed",
+        description: "There was an error generating the PDF. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Providers from "@/components/Providers";
 import { Suspense } from "react";
 import { Inter } from "next/font/google";
+import { ToastProvider } from "@/components/ui/toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +23,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <Suspense fallback={<div>Loading...</div>}>
           <Providers>
-            {children}
+            <ToastProvider>
+              {children}
+            </ToastProvider>
           </Providers>
         </Suspense>
       </body>

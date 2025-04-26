@@ -8,6 +8,7 @@ import {
   onAuthStateChanged
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { toast } from "@/components/ui/toast";
 
 type AuthContextType = {
   user: User | null;
@@ -60,8 +61,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setError(null);
       await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: "Login Successful",
+        description: "You have successfully logged in.",
+        variant: "success",
+      });
     } catch (err) {
-      setError((err as Error).message);
+      const errorMessage = (err as Error).message;
+      setError(errorMessage);
+      toast({
+        title: "Login Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
       throw err;
     }
   };
@@ -69,8 +81,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
+      toast({
+        title: "Logout Successful",
+        description: "You have successfully logged out.",
+        variant: "success",
+      });
     } catch (err) {
-      setError((err as Error).message);
+      const errorMessage = (err as Error).message;
+      setError(errorMessage);
+      toast({
+        title: "Logout Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
       throw err;
     }
   };

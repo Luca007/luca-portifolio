@@ -455,7 +455,7 @@ export default function AdminPanel() {
       toast({
         title: "Success",
         description: "Content updated successfully",
-        variant: "default",
+        variant: "success",
       });
     } catch (error) {
       console.error("Error saving changes:", error);

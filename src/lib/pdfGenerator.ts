@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import { Content } from '@/i18n/content';
 import 'jspdf-autotable';
+import { toast } from '@/components/ui/toast';
 
 // Helper function to format date
 const formatDate = (lang: string = 'en') => {
