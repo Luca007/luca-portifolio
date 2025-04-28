@@ -1,21 +1,20 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth"; // Added import for authentication
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDrxT8NXrvg59C_KoX-sH3Fa26EaZWuyK4",
-  authDomain: "curriculo-d20af.firebaseapp.com",
-  projectId: "curriculo-d20af",
-  storageBucket: "curriculo-d20af.firebasestorage.app",
-  messagingSenderId: "259221061959",
-  appId: "1:259221061959:web:8c552eee0ce6a74a074c62"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-export const auth = getAuth(app); // Added authentication initialization
+export const auth = getAuth(app); // Já configurado para autenticação
 
 export default app;

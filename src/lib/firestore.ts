@@ -13,6 +13,7 @@ import {
   QueryDocumentSnapshot,
   CollectionReference
 } from "firebase/firestore";
+import { auth } from "./firebase";
 import { db } from "./firebase";
 
 // Main content interfaces
@@ -156,4 +157,14 @@ export const getFullSection = async (langCode: string, sectionId: string) => {
   }
 
   return result;
+};
+
+/**
+ * Checks if the current user is an admin
+ * ATENÇÃO: Substitua 'admin@example.com' e 'admin-uid' pelos dados reais do admin.
+ */
+export const isAdmin = (): boolean => {
+  const user = auth.currentUser;
+  // Verifica se o usuário está logado e se o email OU uid corresponde ao admin
+  return user ? user.email === "admin@example.com" || user.uid === "admin-uid" : false;
 };
