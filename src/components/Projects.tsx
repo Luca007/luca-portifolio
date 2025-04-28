@@ -3,7 +3,11 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Github, Code, Globe, Search, Briefcase, Star, Tag, Calendar, RefreshCcw, Loader2 } from "lucide-react";
+// Importe os ícones necessários
+import {
+  ExternalLink, Github, Code, Globe, Search, Briefcase, Star, Tag, Calendar, RefreshCcw, Loader2,
+  FileCode, Container, Coffee, Terminal, FileQuestion, Component // Adicione outros ícones conforme necessário
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,6 +15,7 @@ import { useEffect, useState, useCallback } from "react";
 import { fetchGithubPagesProjects } from "@/lib/github";
 import { Input } from "@/components/ui/input";
 import { imageConfig, throttle } from "@/lib/utils";
+import { LucideProps } from "lucide-react"; // Importe LucideProps
 
 interface Project {
   id: number;
@@ -23,74 +28,51 @@ interface Project {
   language: string;
   stars: number;
   imageUrl: string;
+  hasDemo?: boolean;
 }
+
+// Mapeamento de linguagens para ícones
+const languageIcons: Record<string, React.ComponentType<LucideProps>> = {
+  typescript: Code, // Ou um ícone específico de TS se disponível
+  javascript: Code, // Ou um ícone específico de JS
+  html: FileCode,
+  css: FileCode, // Ou um ícone específico de CSS
+  docker: Container,
+  dockerfile: Container,
+  java: Coffee,
+  python: Code, // Ou um ícone específico de Python
+  shell: Terminal,
+  vue: Component, // Exemplo para Vue
+  // Adicione mais linguagens e seus ícones aqui
+  'n/a': FileQuestion, // Ícone padrão para N/A ou desconhecido
+};
 
 export default function Projects() {
   const { content } = useLanguage();
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // Estado para searchTerm
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [allTags, setAllTags] = useState<string[]>([]);
+  const [allTags, setAllTags] = useState<string[]>([]); // Estado para allTags
+  const [error, setError] = useState<string | null>(null); // Estado para error
 
-  // Fetch GitHub projects
   useEffect(() => {
     const loadProjects = async () => {
       try {
         setIsLoading(true);
-        setError(null);
+        setError(null); // Limpa o erro antes de carregar
+        const githubProjects = await fetchGithubPagesProjects("Luca007");
 
-        // Fetch from GitHub
-        const githubProjects = await fetchGithubPagesProjects('Luca007');
+        // Extraindo todas as tags únicas
+        const tags = Array.from(new Set(githubProjects.flatMap(project => project.topics))).sort();
 
-        // Add static projects if needed (in case GitHub API fails or has rate limits)
-        const staticProjects: Project[] = content.projects.items.map((item, index) => ({
-          id: -1 * (index + 1), // Negative IDs for static projects
-          name: item.title,
-          description: item.description,
-          githubUrl: item.githubLink,
-          demoUrl: item.link,
-          topics: item.tags,
-          lastUpdated: "2023",
-          language: "JavaScript",
-          stars: 0,
-          imageUrl: item.imageUrl
-        }));
-
-        // Combine projects, putting GitHub ones first
-        const allProjects = [...githubProjects, ...staticProjects];
-
-        // Extract all unique tags
-        const tags = Array.from(new Set(
-          allProjects.flatMap(project => project.topics)
-        )).sort();
-
-        setProjects(allProjects);
-        setFilteredProjects(allProjects);
-        setAllTags(tags);
+        setProjects(githubProjects);
+        setFilteredProjects(githubProjects);
+        setAllTags(tags); // Atualizando o estado de allTags
       } catch (err) {
         console.error("Error loading projects:", err);
         setError("Failed to load projects. Please try again later.");
-
-        // Fallback to static projects
-        const staticProjects: Project[] = content.projects.items.map((item, index) => ({
-          id: -1 * (index + 1),
-          name: item.title,
-          description: item.description,
-          githubUrl: item.githubLink,
-          demoUrl: item.link,
-          topics: item.tags,
-          lastUpdated: "2023",
-          language: "JavaScript",
-          stars: 0,
-          imageUrl: item.imageUrl
-        }));
-
-        setProjects(staticProjects);
-        setFilteredProjects(staticProjects);
-        setAllTags(Array.from(new Set(staticProjects.flatMap(project => project.topics))).sort());
       } finally {
         setIsLoading(false);
       }
@@ -128,33 +110,14 @@ export default function Projects() {
   const refreshProjects = async () => {
     try {
       setIsLoading(true);
-      setError(null);
-      const githubProjects = await fetchGithubPagesProjects('Luca007');
+      setError(null); // Limpa o erro antes de recarregar
+      const githubProjects = await fetchGithubPagesProjects("Luca007");
 
-      // Add static projects as fallback
-      const staticProjects: Project[] = content.projects.items.map((item, index) => ({
-        id: -1 * (index + 1),
-        name: item.title,
-        description: item.description,
-        githubUrl: item.githubLink,
-        demoUrl: item.link,
-        topics: item.tags,
-        lastUpdated: "2023",
-        language: "JavaScript",
-        stars: 0,
-        imageUrl: item.imageUrl
-      }));
+      const tags = Array.from(new Set(githubProjects.flatMap(project => project.topics))).sort();
 
-      const allProjects = [...githubProjects, ...staticProjects];
-
-      // Extract all unique tags
-      const tags = Array.from(new Set(
-        allProjects.flatMap(project => project.topics)
-      )).sort();
-
-      setProjects(allProjects);
-      setFilteredProjects(allProjects);
-      setAllTags(tags);
+      setProjects(githubProjects);
+      setFilteredProjects(githubProjects);
+      setAllTags(tags); // Atualizando o estado de allTags
       setSelectedTag(null);
       setSearchTerm("");
     } catch (err) {
@@ -177,7 +140,7 @@ export default function Projects() {
 
   const item = {
     hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1 }
+    show: { y: 0, opacity: 1 },
   };
 
   return (
@@ -311,106 +274,129 @@ export default function Projects() {
             animate="show"
           >
             <AnimatePresence>
-              {filteredProjects.map((project, index) => (
-                <motion.div
-                  key={project.id}
-                  variants={item}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.5, delay: index * 0.05 }}
-                  whileHover={{ y: -5 }}
-                  className="h-full"
-                >
-                  <Card className="overflow-hidden bg-gradient-to-br from-background to-background/90 border border-border/30 hover:border-primary/20 transition-all hover:shadow-xl shadow-lg shadow-black/5 hover:shadow-primary/5 h-full flex flex-col">
-                    <div className="relative h-48 overflow-hidden">
-                      <Image
-                        src={project.imageUrl}
-                        alt={project.name}
-                        fill
-                        sizes={imageConfig.getOptimalSizes()}
-                        className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                        {...imageConfig.defaultImageProps}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-70"></div>
+              {filteredProjects.map((project, index) => {
+                const displayedTopics = project.topics.filter(
+                  (topic) => topic.toLowerCase() !== project.language.toLowerCase() && topic.toLowerCase() !== "web"
+                );
 
-                      {/* Language badge */}
-                      <div className="absolute top-3 left-3 bg-background/80 backdrop-blur-sm border border-border/40 px-2 py-1 rounded-md flex items-center">
-                        <Code className="h-3 w-3 mr-1 text-primary" />
-                        <span className="text-xs font-medium">{project.language}</span>
-                      </div>
+                // Seleciona o ícone da linguagem dinamicamente
+                const langKey = project.language.toLowerCase();
+                const LanguageIcon = languageIcons[langKey] || languageIcons['n/a'];
 
-                      {/* Star count if available */}
-                      {project.stars > 0 && (
-                        <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm border border-border/40 px-2 py-1 rounded-md flex items-center">
-                          <Star className="h-3 w-3 mr-1 text-yellow-400" />
-                          <span className="text-xs font-medium">{project.stars}</span>
-                        </div>
-                      )}
+                return (
+                  <motion.div
+                    layout
+                    key={project.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{
+                      duration: 0.3,
+                      layout: { duration: 0.6, type: "spring", damping: 30, stiffness: 200 }
+                    }}
+                    whileHover={{ y: -5 }}
+                    className="h-full"
+                  >
+                    <Card className="overflow-hidden bg-gradient-to-br from-background to-background/90 border border-border/30 hover:border-primary/20 transition-all hover:shadow-xl shadow-lg shadow-black/5 hover:shadow-primary/5 h-full flex flex-col">
+                      <div className="relative h-48 overflow-hidden">
+                        <Image
+                          src={project.imageUrl}
+                          alt={project.name}
+                          fill
+                          sizes={imageConfig.getOptimalSizes()}
+                          className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                          {...imageConfig.defaultImageProps}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-70"></div>
 
-                      {/* Floating tags */}
-                      <div className="absolute bottom-3 left-3 flex flex-wrap gap-1 max-w-[90%]">
-                        {project.topics.slice(0, 3).map((tag, tagIndex) => (
-                          <span
-                            key={tagIndex}
-                            className="inline-block bg-primary/20 backdrop-blur-sm text-primary px-2 py-0.5 rounded-full text-xs font-medium truncate max-w-[100px]"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setSelectedTag(tag);
-                            }}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                        {project.topics.length > 3 && (
-                          <span className="inline-block bg-muted/40 backdrop-blur-sm text-muted-foreground px-2 py-0.5 rounded-full text-xs">
-                            +{project.topics.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <CardContent className="p-6 flex-grow">
-                      <div className="mb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-lg font-semibold group-hover:text-primary transition-colors line-clamp-1">
-                            {project.name}
-                          </h3>
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3 mr-1" />
-                            <span>{project.lastUpdated}</span>
+                        {/* Language and Web badge */}
+                        <div className="absolute top-3 left-3 bg-background/80 backdrop-blur-sm border border-border/40 px-2 py-1 rounded-md flex flex-col items-start space-y-1">
+                          <div className="flex items-center">
+                            <LanguageIcon className="h-3 w-3 mr-1 text-primary" /> {/* Ícone dinâmico */}
+                            <span className="text-xs font-medium">{project.language}</span>
                           </div>
+                          {project.hasDemo && (
+                            <div className="flex items-center">
+                              <Globe className="h-3 w-3 mr-1 text-primary" />
+                              <span className="text-xs font-medium">Web</span>
+                            </div>
+                          )}
                         </div>
 
-                        <p className="text-muted-foreground text-sm line-clamp-3">
-                          {project.description}
-                        </p>
+                        {/* Star count if available */}
+                        {project.stars > 0 && (
+                          <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm border border-border/40 px-2 py-1 rounded-md flex items-center">
+                            <Star className="h-3 w-3 mr-1 text-yellow-400" />
+                            <span className="text-xs font-medium">{project.stars}</span>
+                          </div>
+                        )}
+
+                        {/* Floating tags */}
+                        <div className="absolute bottom-3 left-3 flex flex-wrap gap-1 max-w-[90%]">
+                          {displayedTopics.slice(0, 3).map((tag, tagIndex) => (
+                            <span
+                              key={tagIndex}
+                              className="inline-block bg-primary/20 backdrop-blur-sm text-primary px-2 py-0.5 rounded-full text-xs font-medium truncate max-w-[100px]"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSelectedTag(tag);
+                              }}
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {displayedTopics.length > 3 && (
+                            <span className="inline-block bg-muted/40 backdrop-blur-sm text-muted-foreground px-2 py-0.5 rounded-full text-xs">
+                              +{displayedTopics.length - 3}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </CardContent>
 
-                    <CardFooter className="p-6 pt-0 flex justify-between gap-4 mt-auto">
-                      <Link href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-                        <Button variant="outline" size="sm" className="w-full gap-1 group">
-                          <Github className="h-4 w-4 group-hover:-translate-y-1 transition-transform" />
-                          <span>GitHub</span>
-                        </Button>
-                      </Link>
+                      <CardContent className="p-6 flex-grow">
+                        <div className="mb-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-semibold group-hover:text-primary transition-colors line-clamp-1">
+                              {project.name}
+                            </h3>
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              <span>{project.lastUpdated}</span>
+                            </div>
+                          </div>
 
-                      <Link href={project.demoUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="w-full gap-1 bg-gradient-to-r from-primary to-blue-500 hover:shadow-md hover:shadow-primary/20 group"
-                        >
-                          <Globe className="h-4 w-4 group-hover:rotate-12 transition-transform" />
-                          <span>Demo</span>
-                        </Button>
-                      </Link>
-                    </CardFooter>
-                  </Card>
-                </motion.div>
-              ))}
+                          <p className="text-muted-foreground text-sm line-clamp-3">
+                            {project.description}
+                          </p>
+                        </div>
+                      </CardContent>
+
+                      <CardFooter className="p-6 pt-0 flex justify-between gap-4 mt-auto">
+                        <Link href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full gap-1 group">
+                            <Github className="h-4 w-4 group-hover:-translate-y-1 transition-transform" />
+                            <span>GitHub</span>
+                          </Button>
+                        </Link>
+
+                        {project.hasDemo && project.demoUrl && (
+                          <Link href={project.demoUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="w-full gap-1 bg-gradient-to-r from-primary to-blue-500 hover:shadow-md hover:shadow-primary/20 group"
+                            >
+                              <Globe className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                              <span>Demo</span>
+                            </Button>
+                          </Link>
+                        )}
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </motion.div>
         )}

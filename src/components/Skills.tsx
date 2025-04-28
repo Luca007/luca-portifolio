@@ -29,6 +29,109 @@ type Skill = {
   level: number;
 };
 
+const SkillCard = ({ skill, isHovered, setHoveredSkill }) => (
+  <motion.div
+    key={skill.name}
+    whileHover={{ y: -5 }}
+    onHoverStart={() => setHoveredSkill(skill.name)}
+    onHoverEnd={() => setHoveredSkill(null)}
+  >
+    <Card className="overflow-hidden border-border/30 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:bg-gradient-to-br hover:from-background hover:to-background/80">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className="mt-0.5 bg-primary/5 rounded-md p-2 sm:p-2.5 transition-colors duration-300">
+            {skill.icon}
+          </div>
+          <div className="flex-1">
+            <h4 className="font-semibold text-base sm:text-lg mb-1 flex items-center">
+              {skill.name}
+              {skill.level >= 90 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3, type: "spring" }}
+                  className="ml-2"
+                >
+                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                </motion.span>
+              )}
+            </h4>
+            <motion.p
+              className="text-xs sm:text-sm text-muted-foreground line-clamp-2 group-hover:line-clamp-none transition-all duration-500"
+              initial={{ height: "2.5rem" }}
+              animate={{ height: isHovered ? "auto" : "2.5rem" }}
+              transition={{ duration: 0.3 }}
+            >
+              {skill.description}
+            </motion.p>
+            <SkillLevel skill={skill} isHovered={isHovered} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </motion.div>
+);
+
+const SkillLevel = ({ skill, isHovered }) => {
+  const levelText = skill.level >= 90 ? "Expert" :
+                    skill.level >= 80 ? "Advanced" :
+                    skill.level >= 60 ? "Intermediate" :
+                    "Basic";
+
+  return (
+    <div className="w-full mt-3">
+      <div className="flex justify-between mb-1">
+        <span className="text-xs text-muted-foreground">Proficiency</span>
+        <motion.span
+          className="text-xs font-medium"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovered ? 1 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          {levelText} - {skill.level}%
+        </motion.span>
+      </div>
+      <div className="w-full bg-muted/50 h-2 rounded-full overflow-hidden relative">
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-primary/70 to-primary h-full rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${skill.level}%` }}
+          transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/20 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+const SkillCategory = ({ skills, title, icon, setHoveredSkill, hoveredSkill }) => (
+  <div className="space-y-4">
+    <motion.h3
+      className="text-lg sm:text-xl font-semibold flex items-center"
+      variants={{
+        hidden: { y: 20, opacity: 0 },
+        show: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+      }}
+    >
+      {icon}
+      <span className="ml-2 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+        {title}
+      </span>
+    </motion.h3>
+    <div className="space-y-3 sm:space-y-4">
+      {skills.map((skill) => (
+        <SkillCard
+          key={skill.name}
+          skill={skill}
+          isHovered={hoveredSkill === skill.name}
+          setHoveredSkill={setHoveredSkill}
+        />
+      ))}
+    </div>
+  </div>
+);
+
 export default function Skills() {
   const { content } = useLanguage();
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
@@ -144,43 +247,6 @@ export default function Skills() {
     },
   ];
 
-  // Helper function to render skill progress bar
-  const renderSkillLevel = (skill: Skill) => {
-    const isHovered = hoveredSkill === skill.name;
-
-    // Define different levels
-    const levelText = skill.level >= 90 ? "Expert" :
-                     skill.level >= 80 ? "Advanced" :
-                     skill.level >= 60 ? "Intermediate" :
-                     "Basic";
-
-    return (
-      <div className="w-full mt-3">
-        <div className="flex justify-between mb-1">
-          <span className="text-xs text-muted-foreground">Proficiency</span>
-          <motion.span
-            className="text-xs font-medium"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            {levelText} - {skill.level}%
-          </motion.span>
-        </div>
-        <div className="w-full bg-muted/50 h-2 rounded-full overflow-hidden relative">
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-primary/70 to-primary h-full rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${skill.level}%` }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/20 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-          </motion.div>
-        </div>
-      </div>
-    );
-  };
-
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -192,87 +258,11 @@ export default function Skills() {
     },
   };
 
-  const item = {
-    hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1, transition: { duration: 0.5 } },
-  };
-
-  const renderSkillCards = (skills: Skill[], title: string, icon: React.ReactNode) => (
-    <div className="space-y-4">
-      <motion.h3
-        className="text-lg sm:text-xl font-semibold flex items-center"
-        variants={item}
-      >
-        {icon}
-        <span className="ml-2 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-          {title}
-        </span>
-      </motion.h3>
-      <div className="space-y-3 sm:space-y-4">
-        {skills.map((skill) => (
-          <motion.div
-            key={skill.name}
-            variants={item}
-            whileHover={{ y: -5 }}
-            onHoverStart={() => setHoveredSkill(skill.name)}
-            onHoverEnd={() => setHoveredSkill(null)}
-          >
-            <Card className="overflow-hidden border-border/30 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:bg-gradient-to-br hover:from-background hover:to-background/80">
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <div className="mt-0.5 bg-primary/5 rounded-md p-2 sm:p-2.5 transition-colors duration-300">
-                    {skill.icon}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-base sm:text-lg mb-1 flex items-center">
-                      {skill.name}
-                      {skill.level >= 90 && (
-                        <motion.span
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 0.3, type: "spring" }}
-                          className="ml-2"
-                        >
-                          <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
-                        </motion.span>
-                      )}
-                    </h4>
-                    <motion.p
-                      className="text-xs sm:text-sm text-muted-foreground line-clamp-2 group-hover:line-clamp-none transition-all duration-500"
-                      initial={{ height: "2.5rem" }}
-                      animate={{ height: hoveredSkill === skill.name ? "auto" : "2.5rem" }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      {skill.description}
-                    </motion.p>
-                    {renderSkillLevel(skill)}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  );
-
   return (
     <section id="skills" className="py-16 sm:py-24 bg-[#050e1b] relative">
-      {/* Top transition wave - fixed */}
-      <div className="absolute -top-12 inset-x-0 h-24 overflow-hidden">
-        <svg
-          viewBox="0 0 1200 120"
-          className="absolute bottom-0 fill-[#050e1b] w-full"
-          preserveAspectRatio="none"
-          style={{ height: '50px' }}
-        >
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-        </svg>
-      </div>
-
       {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 rounded-full filter blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-blue-500/5 rounded-full filter blur-3xl"></div>
+      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 rounded-full filter blur-xl opacity-40"></div>
+      <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-blue-500/5 rounded-full filter blur-xl opacity-40"></div>
 
       <div className="container relative z-10 px-4 sm:px-6">
         <motion.div
@@ -298,27 +288,30 @@ export default function Skills() {
           whileInView="show"
           viewport={{ once: true }}
         >
-          {renderSkillCards(programmingSkills, content.skills.skillCategories.programming,
-            <Code className="mr-2 h-5 w-5 text-primary" />)}
+          <SkillCategory
+            skills={programmingSkills}
+            title={content.skills.skillCategories.programming}
+            icon={<Code className="mr-2 h-5 w-5 text-primary" />}
+            setHoveredSkill={setHoveredSkill}
+            hoveredSkill={hoveredSkill}
+          />
 
-          {renderSkillCards(toolsSkills, content.skills.skillCategories.tools,
-            <Server className="mr-2 h-5 w-5 text-primary" />)}
+          <SkillCategory
+            skills={toolsSkills}
+            title={content.skills.skillCategories.tools}
+            icon={<Server className="mr-2 h-5 w-5 text-primary" />}
+            setHoveredSkill={setHoveredSkill}
+            hoveredSkill={hoveredSkill}
+          />
 
-          {renderSkillCards(languageSkills, content.skills.skillCategories.languages,
-            <Languages className="mr-2 h-5 w-5 text-primary" />)}
+          <SkillCategory
+            skills={languageSkills}
+            title={content.skills.skillCategories.languages}
+            icon={<Languages className="mr-2 h-5 w-5 text-primary" />}
+            setHoveredSkill={setHoveredSkill}
+            hoveredSkill={hoveredSkill}
+          />
         </motion.div>
-      </div>
-
-      {/* Bottom transition wave - fixed */}
-      <div className="absolute -bottom-12 inset-x-0 h-24 overflow-hidden">
-        <svg
-          viewBox="0 0 1200 120"
-          className="absolute top-0 fill-[#050e1b] w-full"
-          preserveAspectRatio="none"
-          style={{ height: '50px', transform: 'rotate(180deg)' }}
-        >
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-        </svg>
       </div>
     </section>
   );

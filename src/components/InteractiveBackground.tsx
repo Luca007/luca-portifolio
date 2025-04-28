@@ -29,14 +29,14 @@ export default function InteractiveBackground() {
   const animationFrameId = useRef<number | null>(null);
   const globalHue = useRef(220);
   const mouseInfluenceRef = useRef({ x: 0, y: 0 });
-  const maxParticlesOnScreen = useRef(120); // Further reduced from 180 to 120
-  const particleLifetimeLimit = useRef(12000); // Further reduced from 15s to 12s
+  const maxParticlesOnScreen = useRef(70); // Further reduced from 120 to 70
+  const particleLifetimeLimit = useRef(10000); // Reduced from 12s to 10s
   const lastFrameTime = useRef(0);
   const frameCount = useRef(0);
 
   // More aggressive throttling
   const lastParticleCreationTime = useRef(0);
-  const particleCreationThrottle = useRef(150); // Increased from 100ms to 150ms
+  const particleCreationThrottle = useRef(200); // Increased from 150ms to 200ms
   const mouseMoveThrottleTime = useRef(0);
 
   // Use ResizeObserver instead of window resize event
@@ -53,13 +53,13 @@ export default function InteractiveBackground() {
   // Performance settings based on device capability - more conservative
   const perfSettings = useMemo(() => {
     return {
-      particleDensity: isLowPerfDevice ? 20000 : 15000, // Further increased for fewer particles
-      maxParticles: isLowPerfDevice ? 60 : 120, // Further reduced
-      lifetime: isLowPerfDevice ? 8000 : 12000, // Even shorter lifetime
-      connectionDistance: isLowPerfDevice ? 90 : 120, // Reduced connection distance
-      drawLimit: isLowPerfDevice ? 60 : 100, // Limit particles rendered
-      skipFrames: isLowPerfDevice ? 3 : 2, // Skip more frames
-      targetFPS: isLowPerfDevice ? 24 : 30, // Lower target FPS
+      particleDensity: isLowPerfDevice ? 30000 : 20000, // Increased for fewer particles
+      maxParticles: isLowPerfDevice ? 40 : 70, // Reduced even further
+      lifetime: isLowPerfDevice ? 6000 : 10000, // Shorter lifetime
+      connectionDistance: isLowPerfDevice ? 70 : 100, // Reduced connection distance
+      drawLimit: isLowPerfDevice ? 40 : 70, // Limit particles rendered
+      skipFrames: isLowPerfDevice ? 4 : 3, // Skip more frames
+      targetFPS: isLowPerfDevice ? 20 : 25, // Lower target FPS
     };
   }, [isLowPerfDevice]);
 
@@ -72,7 +72,7 @@ export default function InteractiveBackground() {
   useEffect(() => {
     const trackDocumentMousePosition = (e: MouseEvent) => {
       const now = performance.now();
-      if (now - mouseMoveThrottleTime.current < 50) { // 50ms throttle (20fps)
+      if (now - mouseMoveThrottleTime.current < 100) { // 10fps throttle (increased from 50ms to 100ms)
         return;
       }
       mouseMoveThrottleTime.current = now;
@@ -115,27 +115,27 @@ export default function InteractiveBackground() {
 
   // Initialize particles - fewer particles
   const initializeParticles = useCallback((width: number, height: number) => {
-    const particleCount = Math.min(Math.floor((width * height) / perfSettings.particleDensity), maxParticlesOnScreen.current);
+    const particleCount = Math.min(Math.floor((width * height) / perfSettings.particleDensity), maxParticlesOnScreen.current * 0.8); // Only start with 80% of max particles
     const newParticles: Particle[] = [];
     const currentTime = performance.now();
 
     for (let i = 0; i < particleCount; i++) {
       const hueOffset = Math.random() * 40 - 20;
-      const size = Math.random() * 2 + 0.5; // Even smaller particles
-      const glow = Math.random() * 0.5 + 0.1; // Reduced glow
+      const size = Math.random() * 1.5 + 0.5; // Even smaller particles
+      const glow = Math.random() * 0.4 + 0.1; // Reduced glow
 
       newParticles.push({
         x: Math.random() * width,
         y: Math.random() * height,
         size,
-        vx: (Math.random() - 0.5) * 0.25, // Even slower movement
-        vy: (Math.random() - 0.5) * 0.25,
+        vx: (Math.random() - 0.5) * 0.15, // Even slower movement
+        vy: (Math.random() - 0.5) * 0.15,
         color: getParticleColor(hueOffset),
-        alpha: Math.random() * 0.4 + 0.1, // Lower alpha
-        life: Math.random() * 70 + 150, // Shorter life
-        maxLife: Math.random() * 70 + 150,
+        alpha: Math.random() * 0.3 + 0.1, // Lower alpha
+        life: Math.random() * 50 + 100, // Shorter life
+        maxLife: Math.random() * 50 + 100,
         hue: (globalHue.current + hueOffset) % 360,
-        hueSpeed: Math.random() * 0.08 - 0.04, // Even slower hue changes
+        hueSpeed: Math.random() * 0.06 - 0.03, // Even slower hue changes
         glow,
         creationTime: currentTime
       });
@@ -150,14 +150,14 @@ export default function InteractiveBackground() {
 
     // More restrictive particle creation checking
     if (
-      particles.current.length >= maxParticlesOnScreen.current * 0.85 || // Only at 85% capacity
-      currentTime - lastParticleCreationTime.current < particleCreationThrottle.current
+      particles.current.length >= maxParticlesOnScreen.current * 0.75 || // Only at 75% capacity, lowered from 85%
+      currentTime - lastParticleCreationTime.current < particleCreationThrottle.current * 1.5
     ) {
       return;
     }
 
     // Determine how many particles we can safely create - fewer
-    const roomForParticles = Math.min(20, Math.floor(maxParticlesOnScreen.current * 0.85) - particles.current.length);
+    const roomForParticles = Math.min(12, Math.floor(maxParticlesOnScreen.current * 0.75) - particles.current.length); // Reduced from 20 to 12
     const actualCount = Math.min(count, roomForParticles);
 
     if (actualCount <= 0) return;
@@ -166,10 +166,10 @@ export default function InteractiveBackground() {
 
     for (let i = 0; i < actualCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 1.5 + 0.8; // Slower particles
+      const speed = Math.random() * 1.2 + 0.6; // Slower particles
       const hueOffset = Math.random() * 60 - 30;
-      const size = Math.random() * 2 + 0.8;
-      const glow = Math.random() * 0.6 + 0.2;
+      const size = Math.random() * 1.8 + 0.8; // Slightly smaller
+      const glow = Math.random() * 0.5 + 0.2; // Reduced glow
 
       explosionParticles.push({
         x,
@@ -307,7 +307,7 @@ export default function InteractiveBackground() {
         return;
       }
 
-      // More agressive frame skipping
+      // More aggressive frame skipping
       frameCount.current = (frameCount.current + 1) % (framesToSkip + 1);
       if (frameCount.current !== 0) {
         lastFrameTime.current = currentTime;
@@ -319,7 +319,7 @@ export default function InteractiveBackground() {
 
       // Clear with composite operation - faster fading
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = 'rgba(0,0,0,0.22)'; // Increased to reduce trails even more
+      ctx.fillStyle = 'rgba(0,0,0,0.08)'; // Reduced further from 0.12 to 0.08 for better visibility
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'source-over';
 
@@ -364,18 +364,18 @@ export default function InteractiveBackground() {
         ctx.fillStyle = `hsla(${p.hue}, 91%, 65%, ${p.alpha * combinedAlpha})`;
         ctx.fill();
 
-        // Only larger particles get glow effects - and only 1 in 3 particles
-        if (p.size > 1.8 && combinedAlpha > 0.4 && i % 3 === 0) {
+        // Only larger particles get glow effects - and only 1 in 4 particles (decreased from 1 in 3)
+        if (p.size > 1.8 && combinedAlpha > 0.4 && i % 4 === 0) {
           ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * (1 + p.glow * 0.5), 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${p.hue}, 95%, 70%, ${combinedAlpha * 0.08})`;
+          ctx.arc(p.x, p.y, p.size * (1 + p.glow * 0.4), 0, Math.PI * 2); // Reduced glow size multiplier
+          ctx.fillStyle = `hsla(${p.hue}, 95%, 70%, ${combinedAlpha * 0.07})`; // Reduced opacity
           ctx.fill();
         }
 
-        // Draw connections only for a small subset of particles (1 in 4)
-        if (combinedAlpha > 0.3 && i % 4 === 0) {
+        // Draw connections only for a small subset of particles (1 in 6) - reduced from 1 in 4
+        if (combinedAlpha > 0.3 && i % 6 === 0) {
           // Limit to just 1 connection per particle for better performance
-          for (let j = i + 1; j < particlesToProcess && j < i + 10; j++) {
+          for (let j = i + 1; j < particlesToProcess && j < i + 8; j++) {
             const p2 = particles.current[j];
             if (p2.life <= 0) continue;
 
@@ -400,28 +400,28 @@ export default function InteractiveBackground() {
           }
         }
 
-        // Simplified mouse interaction
+        // Simplified mouse interaction - reduced influence
         if (isMouseInside) {
           const dx = p.x - mousePosition.x;
           const dy = p.y - mousePosition.y;
           const distSquared = dx * dx + dy * dy;
-          const maxInteractDistSquared = 150 * 150; // Reduced interaction radius
+          const maxInteractDistSquared = 120 * 120; // Further reduced interaction radius from 150 to 120
 
           if (distSquared < maxInteractDistSquared) {
             const distance = Math.sqrt(distSquared);
-            const force = (150 - distance) / (isClicked ? 450 : 650); // Reduced force
+            const force = (120 - distance) / (isClicked ? 600 : 800); // Further reduced force
             p.vx += dx * force;
             p.vy += dy * force;
           }
         }
 
-        // Simplified motion updates
-        p.vx += globalMouseForceX * (1 - p.size / 3);
-        p.vy += globalMouseForceY * (1 - p.size / 3);
+        // Simplified motion updates with more damping
+        p.vx += globalMouseForceX * (1 - p.size / 3) * 0.8; // Reduced force by 20%
+        p.vy += globalMouseForceY * (1 - p.size / 3) * 0.8; // Reduced force by 20%
         p.x += p.vx;
         p.y += p.vy;
-        p.vx *= 0.96; // Increased friction
-        p.vy *= 0.96;
+        p.vx *= 0.94; // Increased friction from 0.96 to 0.94
+        p.vy *= 0.94; // Increased friction from 0.96 to 0.94
 
         // Simple boundary check
         if (p.x < 0 || p.x > canvas.width) {
@@ -438,11 +438,11 @@ export default function InteractiveBackground() {
 
       particles.current = newParticles;
 
-      // Add new particles less frequently (1/3 of previous rate)
+      // Add new particles less frequently
       if (
-        particles.current.length < maxParticlesOnScreen.current * 0.7 && // Only fill to 70%
-        Math.random() < 0.015 && // Much lower probability
-        currentTime - lastParticleCreationTime.current > particleCreationThrottle.current * 3
+        particles.current.length < maxParticlesOnScreen.current * 0.6 && // Only fill to 60%, reduced from 70%
+        Math.random() < 0.01 && // Lower probability, reduced from 0.015
+        currentTime - lastParticleCreationTime.current > particleCreationThrottle.current * 4 // Increased throttle
       ) {
         const hueOffset = Math.random() * 40 - 20;
         const size = Math.random() * 2 + 0.5;
@@ -524,6 +524,11 @@ export default function InteractiveBackground() {
 
     const handleTouchStart = (e: TouchEvent) => {
       e.preventDefault();
+
+      const now = performance.now();
+      if (now - lastTouchTime < 200) return; // 5fps throttle for touch start
+      lastTouchTime = now;
+
       setIsClicked(true);
       const rect = canvas.getBoundingClientRect();
       const touch = e.touches[0];
@@ -532,14 +537,14 @@ export default function InteractiveBackground() {
 
       setMousePosition({ x, y });
       setIsMouseInside(true);
-      createExplosion(x, y, 10); // Reduced particle count (was 20)
+      createExplosion(x, y, 6); // Further reduced from 10 to 6 particles
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       e.preventDefault();
 
       const now = performance.now();
-      if (now - lastTouchTime < 50) return; // About 20fps throttling
+      if (now - lastTouchTime < 100) return; // More aggressive 10fps throttling, up from 50ms
       lastTouchTime = now;
 
       const rect = canvas.getBoundingClientRect();
@@ -553,7 +558,7 @@ export default function InteractiveBackground() {
     const handleTouchEnd = (e: TouchEvent) => {
       e.preventDefault();
       setIsClicked(false);
-      setTimeout(() => setIsMouseInside(false), 300); // Reduced from 500ms
+      setTimeout(() => setIsMouseInside(false), 200); // Reduced even more from 300ms to 200ms
     };
 
     canvas.addEventListener("touchstart", handleTouchStart);
