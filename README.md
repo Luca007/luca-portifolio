@@ -2,9 +2,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 # Luca Clerot - Portfolio
 
-<div align="center">
-  <img src="public/images/screenshots/portfolio-hero.png" alt="Portfolio Hero Section" width="800"/>
-</div>
+![Imagem pincipal](./public/images/screenshots/portfolio-hero.png)
 
 A modern, interactive portfolio website built with Next.js, Tailwind CSS, and Framer Motion. This portfolio showcases Luca Clerot's professional experience, skills, education, and projects with a beautiful dark-themed UI and interactive elements.
 
