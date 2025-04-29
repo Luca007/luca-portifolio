@@ -16,6 +16,7 @@ interface GithubApiRepo {
   stargazers_count: number;
   fork: boolean;
   archived: boolean;
+  default_branch: string; // Add default_branch
 }
 
 // Interface para os dados do projeto como usados no frontend
@@ -94,6 +95,68 @@ const fetchReadmeContent = async (username: string, repoName: string): Promise<s
 };
 
 /**
+ * Extrai a primeira URL de imagem correspondente ao padrão do README.
+ * Prioritiza URLs absolutas raw.githubusercontent.com, depois tenta converter
+ * URLs relativas começando com './public/', '/public/', ou 'public/' dentro de markdown ![alt](url) ou HTML <img>.
+ * Uses the provided defaultBranch for constructing absolute URLs from relative paths.
+ */
+const extractImageUrlFromReadme = (readmeContent: string | null, username: string, repoName: string, defaultBranch: string): string | null => {
+  if (!readmeContent) {
+    console.log(`[${username}/${repoName}] No README content.`);
+    return null;
+  }
+  console.log(`[${username}/${repoName}] Using default branch: ${defaultBranch}`);
+
+  // 1. Tenta encontrar URLs absolutas raw.githubusercontent.com
+  // Regex now includes the dynamic defaultBranch
+  const absoluteRegex = new RegExp(
+    `(?:!\\[.*?\\]\\(|\\s|^)(https:\/\/raw\\.githubusercontent\\.com\/${username}\/${repoName}\/${defaultBranch}\/[^\\s()]*\\.(?:png|jpg|jpeg|gif|webp|svg))`,
+    'i'
+  );
+  let match = readmeContent.match(absoluteRegex);
+  if (match && match[1]) {
+    console.log(`[${username}/${repoName}] Found absolute URL: ${match[1]}`);
+    return match[1];
+  }
+
+  // 2. Tenta encontrar relativa em Markdown ![alt](url)
+  // Refined regex: explicitly look for ./ or / or nothing before public/
+  const relativeMdRegex = /!\[.*?\]\(\s*((?:\.\/|\/|)public\/[^)]+\.(?:png|jpg|jpeg|gif|webp|svg))\s*\)/i;
+  // Log right before attempting the relative MD match
+  console.log(`[${username}/${repoName}] Attempting relative MD regex match...`);
+  match = readmeContent.match(relativeMdRegex);
+  if (match && match[1]) {
+    // Path captured in group 1, remove leading ./ or / if present
+    const relativePath = match[1].replace(/^\.?\//, '');
+    const absoluteUrl = `https://raw.githubusercontent.com/${username}/${repoName}/${defaultBranch}/${relativePath}`;
+    console.log(`[${username}/${repoName}] Found relative MD URL: ${match[1]}, Converted to: ${absoluteUrl}`);
+    return absoluteUrl;
+  } else {
+    console.log(`[${username}/${repoName}] Relative MD regex did not match.`);
+  }
+
+  // 3. Tenta encontrar relativa em HTML <img src="...">
+  const relativeHtmlRegex = /<img\s+[^>]*?src\s*=\s*["']\s*(\.?\/?public\/[^"']+\.(?:png|jpg|jpeg|gif|webp|svg))\s*["'][^>]*?>/i;
+  // Log right before attempting the relative HTML match
+  console.log(`[${username}/${repoName}] Attempting relative HTML regex match...`);
+  match = readmeContent.match(relativeHtmlRegex);
+  if (match && match[1]) {
+    const relativePath = match[1].replace(/^\.?\//, '');
+    const absoluteUrl = `https://raw.githubusercontent.com/${username}/${repoName}/${defaultBranch}/${relativePath}`;
+    console.log(`[${username}/${repoName}] Found relative HTML URL: ${match[1]}, Converted to: ${absoluteUrl}`);
+    return absoluteUrl;
+  } else {
+    console.log(`[${username}/${repoName}] Relative HTML regex did not match.`);
+  }
+
+
+  // 4. Se não encontrou nenhum dos padrões
+  console.log(`[${username}/${repoName}] No matching image URL found in README after all checks.`);
+  return null;
+};
+
+
+/**
  * Busca e processa os projetos do GitHub, utilizando cache e API.
  */
 export async function fetchGithubPagesProjects(username: string): Promise<GithubPagesRepo[]> {
@@ -105,7 +168,13 @@ export async function fetchGithubPagesProjects(username: string): Promise<Github
       // Verifica se o cache local é válido (menos de 1 semana)
       if (Date.now() - parsedData.timestamp < oneWeekInMs) {
         console.log("Loading projects from localStorage cache.");
+        // Log the imageUrl of the first project from cache
+        if (parsedData.projects && parsedData.projects.length > 0) {
+            console.log(`[Cache - localStorage] First project imageUrl: ${parsedData.projects[0].imageUrl}`);
+        }
         return parsedData.projects;
+      } else {
+        console.log("localStorage cache expired.");
       }
     }
   } catch (error) {
@@ -122,12 +191,18 @@ export async function fetchGithubPagesProjects(username: string): Promise<Github
       // Verifica se o cache do Firestore é válido (menos de 1 semana)
       if (firestoreData.timestamp && Date.now() - firestoreData.timestamp.toMillis() < oneWeekInMs) {
         console.log("Loading projects from Firestore cache.");
+        // Log the imageUrl of the first project from cache
+        if (firestoreData.projects && firestoreData.projects.length > 0) {
+            console.log(`[Cache - Firestore] First project imageUrl: ${firestoreData.projects[0].imageUrl}`);
+        }
         // Atualiza o localStorage com os dados do Firestore
         localStorage.setItem(
           localStorageKey,
           JSON.stringify({ projects: firestoreData.projects, timestamp: Date.now() })
         );
         return firestoreData.projects;
+      } else {
+         console.log("Firestore cache expired.");
       }
     }
   } catch (error) {
@@ -152,9 +227,8 @@ export async function fetchGithubPagesProjects(username: string): Promise<Github
     }
 
     const repos: GithubApiRepo[] = await reposResponse.json();
-
-    // Filtra repositórios relevantes (não forks, não arquivados)
     const relevantRepos = repos.filter(repo => !repo.fork && !repo.archived);
+    let defaultImageIndex = 0;
 
     // Processa cada repositório para buscar README e formatar
     const processedProjects = await Promise.all(
@@ -185,15 +259,22 @@ export async function fetchGithubPagesProjects(username: string): Promise<Github
           topics.push(mainLang); // Adiciona a linguagem em minúsculas para filtro
         }
 
-        // TODO: Implementar lógica real de busca de imagem (atual é placeholder)
-        const imageUrl = `/images/projects/default-project.jpg`;
+        // Extrai a imagem do README, passing the repo's default_branch
+        let imageUrl = extractImageUrlFromReadme(readmeContent, username, repo.name, repo.default_branch || 'main'); // Pass default branch, fallback to 'main'
+        if (!imageUrl) {
+          imageUrl = defaultImageIndex % 2 === 0 ? '/images/projects/code.png' : '/images/projects/code2.jpg';
+          console.log(`[${username}/${repo.name}] Using default image: ${imageUrl}`);
+          defaultImageIndex++;
+        } else {
+           console.log(`[${username}/${repo.name}] Using extracted image: ${imageUrl}`);
+        }
 
         // Formata a data da última atualização
         const lastUpdated = new Date(repo.pushed_at).toLocaleDateString('pt-BR', {
           day: '2-digit', month: '2-digit', year: 'numeric'
         });
 
-        return {
+        const projectData: GithubPagesRepo = {
           id: repo.id,
           name: repo.name.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
           description: repo.description || `Projeto desenvolvido com ${repo.language || 'tecnologias web'}.`,
@@ -204,8 +285,11 @@ export async function fetchGithubPagesProjects(username: string): Promise<Github
           lastUpdated: lastUpdated,
           language: repo.language || 'N/A', // Mantém o nome original da linguagem para exibição
           stars: repo.stargazers_count,
-          imageUrl: imageUrl,
+          imageUrl: imageUrl, // Usa a imagem extraída ou a padrão
         };
+        // Log the final assigned imageUrl for this project
+        console.log(`[${username}/${repo.name}] Final assigned imageUrl: ${projectData.imageUrl}`);
+        return projectData;
       })
     );
 
@@ -220,7 +304,12 @@ export async function fetchGithubPagesProjects(username: string): Promise<Github
 
     // Atualiza localStorage
     try {
+      console.log("Attempting to write to localStorage...");
       localStorage.setItem(localStorageKey, JSON.stringify(dataToCache));
+      console.log("Successfully wrote to localStorage.");
+      // Verify write by reading back (optional)
+      // const writtenData = localStorage.getItem(localStorageKey);
+      // console.log("Data read back from localStorage:", writtenData ? JSON.parse(writtenData) : 'null');
     } catch (error) {
       console.error("Error writing to localStorage:", error);
     }

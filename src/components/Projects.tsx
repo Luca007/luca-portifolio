@@ -283,6 +283,9 @@ export default function Projects() {
                 const langKey = project.language.toLowerCase();
                 const LanguageIcon = languageIcons[langKey] || languageIcons['n/a'];
 
+                // *** Add logging here ***
+                console.log(`Rendering project: ${project.name}, Image URL: ${project.imageUrl}`);
+
                 return (
                   <motion.div
                     layout
@@ -300,12 +303,14 @@ export default function Projects() {
                     <Card className="overflow-hidden bg-gradient-to-br from-background to-background/90 border border-border/30 hover:border-primary/20 transition-all hover:shadow-xl shadow-lg shadow-black/5 hover:shadow-primary/5 h-full flex flex-col">
                       <div className="relative h-48 overflow-hidden">
                         <Image
-                          src={project.imageUrl}
+                          src={project.imageUrl} // Ensure this is correct
                           alt={project.name}
                           fill
                           sizes={imageConfig.getOptimalSizes()}
                           className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
                           {...imageConfig.defaultImageProps}
+                          // Add onError for debugging image loading issues
+                          onError={(e) => console.error(`Image failed to load: ${project.imageUrl}`, e)}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-70"></div>
 
