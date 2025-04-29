@@ -160,11 +160,10 @@ export const getFullSection = async (langCode: string, sectionId: string) => {
 };
 
 /**
- * Checks if the current user is an admin
- * ATENÇÃO: Substitua 'admin@example.com' e 'admin-uid' pelos dados reais do admin.
+ * Checks if the current user is an admin (simplified: checks if any user is logged in).
  */
 export const isAdmin = (): boolean => {
   const user = auth.currentUser;
-  // Verifica se o usuário está logado e se o email OU uid corresponde ao admin
-  return user ? user.email === "admin@example.com" || user.uid === "admin-uid" : false;
+  // Returns true if a user is logged in, false otherwise.
+  return !!user;
 };

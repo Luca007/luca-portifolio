@@ -12,7 +12,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useCallback } from "react";
-import { fetchGithubPagesProjects } from "@/lib/github";
+import { fetchGithubPagesProjects, syncLocalStorageToFirestore } from "@/lib/github";
+import { isAdmin } from "@/lib/firestore"; // Import isAdmin
+import { auth } from "@/lib/firebase"; // Import auth instance
+import { onAuthStateChanged, User } from "firebase/auth"; // Import User type
 import { Input } from "@/components/ui/input";
 import { imageConfig, throttle } from "@/lib/utils";
 import { LucideProps } from "lucide-react"; // Importe LucideProps
@@ -57,6 +60,35 @@ export default function Projects() {
   const [allTags, setAllTags] = useState<string[]>([]); // Estado para allTags
   const [error, setError] = useState<string | null>(null); // Estado para error
 
+  // Effect to listen for Auth changes and trigger sync
+  useEffect(() => {
+    console.log("Setting up onAuthStateChanged listener...");
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => { // Explicitly type user
+      if (user) {
+        // User is signed in
+        console.log("onAuthStateChanged: User signed in", user.uid);
+        // Check if the logged-in user is considered admin (i.e., anyone logged in)
+        // isAdmin() internally checks auth.currentUser, which should be populated now.
+        if (isAdmin()) {
+          console.log("onAuthStateChanged: Admin detected, calling syncLocalStorageToFirestore...");
+          // Trigger the sync function from localStorage to Firestore
+          syncLocalStorageToFirestore(); // Call the function
+        } else {
+           console.log("onAuthStateChanged: Non-admin user logged in, sync skipped.");
+        }
+      } else {
+        // User is signed out
+        console.log("onAuthStateChanged: User signed out");
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+        console.log("Cleaning up onAuthStateChanged listener.");
+        unsubscribe();
+    }
+  }, []); // Run only once on component mount
+
   useEffect(() => {
     const loadProjects = async () => {
       try {
@@ -79,7 +111,8 @@ export default function Projects() {
     };
 
     loadProjects();
-  }, [content.projects.items]);
+  // Removed content.projects.items dependency as project loading is now primarily driven by github fetch
+  }, []); // Consider dependencies if content affects initial load logic elsewhere
 
   // Filter projects based on search and tags
   useEffect(() => {
