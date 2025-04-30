@@ -1,8 +1,10 @@
+/* Tailwind CSS Directives - Ignored by standard CSS linters */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* Light theme variables (default) */
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
@@ -10,7 +12,7 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 220 100% 56%;
+    --primary: 220 100% 56%; /* Example Light Primary */
     --primary-foreground: 0 0% 98%;
     --secondary: 240 5.9% 10%;
     --secondary-foreground: 0 0% 98%;
@@ -24,14 +26,9 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
-
-    /* Animation variables */
-    --animation-duration-slow: 800ms;
-    --animation-duration-medium: 500ms;
-    --animation-duration-fast: 300ms;
-    --animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  /* Dark theme overrides */
   .dark {
     --background: 222 47% 5%;
     --foreground: 210 40% 98%;
@@ -39,7 +36,7 @@
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 8%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 65%;
+    --primary: 217 91% 65%; /* Example Dark Primary */
     --primary-foreground: 222 47% 5%;
     --secondary: 217 91% 15%;
     --secondary-foreground: 210 40% 98%;
@@ -57,9 +54,11 @@
 
 @layer base {
   * {
+    /* Tailwind Apply Directive */
     @apply border-border;
   }
   body {
+    /* Tailwind Apply Directive */
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
 
@@ -76,10 +75,12 @@
   }
 
   ::-webkit-scrollbar-track {
+    /* Tailwind Apply Directive */
     @apply bg-muted/20 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb {
+    /* Tailwind Apply Directive */
     @apply bg-primary/30 rounded-full transition-colors hover:bg-primary/50;
   }
 
@@ -112,6 +113,7 @@
 
   /* Focus outline for accessibility */
   :focus-visible {
+    /* Tailwind Apply Directive */
     @apply outline-2 outline-primary/70 outline-offset-2;
   }
 
@@ -134,7 +136,8 @@
     }
 
     .desktop-enhanced:hover {
-      transform: translateY(-3px);
+      /* ... transform ... */
+      /* Tailwind Apply Directive */
       @apply shadow-lg shadow-primary/20;
     }
   }
@@ -159,19 +162,24 @@
 /* Layer components for better CSS organization */
 @layer components {
   .section-heading {
+    /* Tailwind Apply Directive */
     @apply text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 text-center relative flex flex-col items-center;
   }
 
   .section-heading::after {
     content: "";
+    /* ... content ... */
+    /* Tailwind Apply Directive */
     @apply bg-primary/50 h-1 w-16 rounded-full mt-4;
   }
 
   .section-heading span:last-child {
+    /* Tailwind Apply Directive */
     @apply text-primary;
   }
 
   .text-gradient {
+    /* Tailwind Apply Directive */
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-500 to-primary;
   }
 
@@ -225,10 +233,12 @@
 /* Responsive padding utilities */
 @layer utilities {
   .responsive-px {
+    /* Tailwind Apply Directive */
     @apply px-4 sm:px-6 md:px-8 lg:px-10;
   }
 
   .responsive-py {
+    /* Tailwind Apply Directive */
     @apply py-10 md:py-14 lg:py-20;
   }
 }
@@ -237,31 +247,6 @@
 section {
   scroll-margin-top: 80px; /* Ensure sections start below the header when navigating */
   padding-top: 20px; /* Add padding to the top of all sections */
-}
-
-/* Fix footer hover animations */
-footer a {
-  position: relative;
-  transition: color 0.3s ease;
-}
-
-footer a:hover {
-  color: hsl(var(--primary));
-}
-
-footer a::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 1px;
-  bottom: -2px;
-  left: 0;
-  background-color: hsl(var(--primary));
-  transition: width 0.3s ease;
-}
-
-footer a:hover::after {
-  width: 100%;
 }
 
 /* Ensure header is always visible at the top */

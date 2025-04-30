@@ -12,13 +12,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import {
   getLanguages,
   getFullSection,
-  updateSectionItem,
-  updateSubcollectionItem,
+  updateFirestoreDocument,
   ContentItem
 } from "@/lib/firestore";
 import { Save, Edit, List, Layers, Image, Type, X, Check, RefreshCw } from "lucide-react";
 import { toast } from "./ui/toast";
 import { ScrollArea } from "./ui/scroll-area";
+import { doc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface EditableContent {
   id: string;
@@ -28,11 +29,23 @@ interface EditableContent {
   originalContent: any;
 }
 
-const SectionTabs = ({ currentSection, loadSectionData, sections, isLoading }) => (
+interface Section {
+  id: string;
+  label: string;
+}
+
+interface SectionTabsProps {
+  currentSection: string;
+  loadSectionData: (sectionId: string) => Promise<void>;
+  sections: Section[];
+  isLoading: boolean;
+}
+
+const SectionTabs: React.FC<SectionTabsProps> = ({ currentSection, loadSectionData, sections, isLoading }) => (
   <Tabs value={currentSection} onValueChange={loadSectionData} className="flex flex-col h-full">
     <div className="p-4 border-b border-border/20">
       <TabsList className="w-full h-auto flex flex-wrap gap-1">
-        {sections.map(section => (
+        {sections.map((section: Section) => (
           <TabsTrigger
             key={section.id}
             value={section.id}
@@ -47,7 +60,14 @@ const SectionTabs = ({ currentSection, loadSectionData, sections, isLoading }) =
   </Tabs>
 );
 
-const ItemPreview = ({ item, id, path, handleEdit }) => {
+interface ItemPreviewProps {
+  item: any;
+  id: string;
+  path: any[];
+  handleEdit: (id: string, path: any[], type: string, content: any) => void;
+}
+
+const ItemPreview: React.FC<ItemPreviewProps> = ({ item, id, path, handleEdit }) => {
   if (id.includes('admin')) return null;
 
   switch (item.type) {
@@ -64,10 +84,7 @@ const ItemPreview = ({ item, id, path, handleEdit }) => {
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground">{item.type}</span>
-            <Edit
-              size={14}
-              className="opacity-0 group-hover:opacity-100 text-primary transition-opacity"
-            />
+            <Edit size={14} className="opacity-0 group-hover:opacity-100 text-primary transition-opacity" />
           </div>
           <div className="text-sm font-medium truncate">{item.text}</div>
         </div>
@@ -81,18 +98,26 @@ const ItemPreview = ({ item, id, path, handleEdit }) => {
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground">{item.type || "Item"}</span>
-            <Edit
-              size={14}
-              className="opacity-0 group-hover:opacity-100 text-primary transition-opacity"
-            />
+            <Edit size={14} className="opacity-0 group-hover:opacity-100 text-primary transition-opacity" />
           </div>
-          <div className="text-sm font-medium truncate">{item.text || item.name || item.title || JSON.stringify(item).substring(0, 30) + "..."}</div>
+          <div className="text-sm font-medium truncate">
+            {item.text || item.name || item.title || JSON.stringify(item).substring(0, 30) + "..."}
+          </div>
         </div>
       );
   }
-};
+}
 
-const EditForm = ({ selectedItem, handleContentChange, editedContent, setEditedContent, setSelectedItem, hasChanges }) => {
+interface EditFormProps {
+  selectedItem: any;
+  handleContentChange: (field: string, value: string) => void;
+  editedContent: any[];
+  setEditedContent: React.Dispatch<React.SetStateAction<any[]>>;
+  setSelectedItem: React.Dispatch<React.SetStateAction<any>>;
+  hasChanges: (item: any) => boolean;
+}
+
+const EditForm: React.FC<EditFormProps> = ({ selectedItem, handleContentChange, editedContent, setEditedContent, setSelectedItem, hasChanges }) => {
   if (!selectedItem) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-6 text-center text-muted-foreground">
@@ -276,18 +301,18 @@ const EditForm = ({ selectedItem, handleContentChange, editedContent, setEditedC
   );
 };
 
-export default function AdminPanel() {
+export default function AdminPanel(): JSX.Element | null {
   const { isAdmin } = useAuth();
   const { currentLanguage } = useLanguage();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [currentSection, setCurrentSection] = useState<string>("home");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
   const [sectionData, setSectionData] = useState<any>(null);
-  const [editedContent, setEditedContent] = useState<EditableContent[]>([]);
-  const [selectedItem, setSelectedItem] = useState<EditableContent | null>(null);
+  const [editedContent, setEditedContent] = useState<any[]>([]);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
 
-  const sections = [
+  const sections: Section[] = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
     { id: "skills", label: "Skills" },
@@ -376,8 +401,8 @@ export default function AdminPanel() {
     }
   };
 
-  const handleEdit = (id: string, path: string[], type: string, content: any) => {
-    const newEditedItem: EditableContent = {
+  const handleEdit = (id: string, path: any[], type: string, content: any) => {
+    const newEditedItem = {
       id,
       path,
       type,
@@ -385,14 +410,14 @@ export default function AdminPanel() {
       originalContent: { ...content }
     };
 
-    const existingIndex = editedContent.findIndex(item =>
-      item.id === id && JSON.stringify(item.path) === JSON.stringify(path)
+    const existingIndex = editedContent.findIndex(
+      (item) => item.id === id && JSON.stringify(item.path) === JSON.stringify(path)
     );
 
     if (existingIndex >= 0) {
-      const updatedContent = [...editedContent];
-      updatedContent[existingIndex] = newEditedItem;
-      setEditedContent(updatedContent);
+      const updated = [...editedContent];
+      updated[existingIndex] = newEditedItem;
+      setEditedContent(updated);
     } else {
       setEditedContent([...editedContent, newEditedItem]);
     }
@@ -432,20 +457,9 @@ export default function AdminPanel() {
       for (const item of editedContent) {
         if (JSON.stringify(item.content) !== JSON.stringify(item.originalContent)) {
           if (item.path.length === 1) {
-            await updateSectionItem(
-              currentLanguage.code,
-              currentSection,
-              item.id,
-              item.content
-            );
+            await updateSectionItem(currentLanguage.code, currentSection, item.id, item.content);
           } else if (item.path.length === 2) {
-            await updateSubcollectionItem(
-              currentLanguage.code,
-              currentSection,
-              item.path[0],
-              item.id,
-              item.content
-            );
+            await updateSubcollectionItem(currentLanguage.code, currentSection, item.path[0], item.id, item.content);
           }
         }
       }
@@ -469,7 +483,7 @@ export default function AdminPanel() {
     }
   };
 
-  const hasChanges = (item: EditableContent) => {
+  const hasChanges = (item: any): boolean => {
     return JSON.stringify(item.content) !== JSON.stringify(item.originalContent);
   };
 
@@ -599,3 +613,24 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+const updateSectionItem = async (
+  langCode: string,
+  section: string,
+  itemId: string,
+  content: any
+) => {
+  const docRef = doc(db, "languages", langCode, section, itemId);
+  return await updateFirestoreDocument(docRef, content);
+};
+
+const updateSubcollectionItem = async (
+  langCode: string,
+  section: string,
+  subcollection: string,
+  itemId: string,
+  content: any
+) => {
+  const docRef = doc(db, "languages", langCode, section, subcollection, itemId);
+  return await updateFirestoreDocument(docRef, content);
+};

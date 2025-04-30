@@ -1,4 +1,4 @@
-import { getDoc, setDoc, doc, serverTimestamp, Timestamp, collection, writeBatch, getDocs } from "firebase/firestore"; // Added collection, writeBatch, getDocs
+import { getDoc, setDoc, doc, serverTimestamp, Timestamp, collection, writeBatch, getDocs, FieldValue } from "firebase/firestore"; // Added FieldValue
 import { db } from "./firebase";
 import { auth } from "./firebase";
 import { isAdmin } from "./firestore";
@@ -59,10 +59,14 @@ interface GithubProjectDoc {
     estrelas: number;
 }
 
-// Interface for the simple blob cache document
 interface CachedProjectsBlob {
   projects: GithubPagesRepoCache[];
-  timestamp: number | Timestamp;
+  timestamp: number; // Use number for JS Date.now() in localStorage
+}
+
+interface FirestoreCachedProjectsBlob {
+    projects: GithubPagesRepoCache[];
+    timestamp: Timestamp; // Use Timestamp for Firestore serverTimestamp
 }
 
 // --- Constants ---
@@ -165,11 +169,85 @@ const extractImageUrlFromReadme = (readmeContent: string | null, username: strin
   return null;
 };
 
+// Helper to process raw repo data into cache format
+const processRepoData = async (repo: GithubApiRepo, username: string, defaultImageIndex: { current: number }): Promise<GithubPagesRepoCache> => {
+    const readmeContent = await fetchReadmeContent(username, repo.name);
+    const metadata = readmeContent ? extractReadmeMetadata(readmeContent) : {};
+    const linkInReadme = readmeContent ? findProjectDemoLink(readmeContent, username, repo.name) : null;
+    const demoUrl = metadata.demoUrl || repo.homepage || linkInReadme || `https://${username}.github.io/${repo.name}/`;
+    const hasDemo = !!linkInReadme || !!repo.homepage || !!metadata.demoUrl;
 
-/**
- * Fetches projects, prioritizing cache (Firestore blob for admin, localStorage, then API).
- * Triggers detailed Firestore collection update if fetching from API as admin.
- */
+    const topics = repo.topics || [];
+    if (metadata.category && !topics.map(t => t.toLowerCase()).includes(metadata.category.toLowerCase())) {
+      topics.push(metadata.category);
+    }
+    const lowerCaseTopics = topics.map(t => t.toLowerCase());
+    if (hasDemo && !lowerCaseTopics.includes("web")) {
+      topics.push("web");
+    }
+    const mainLang = repo.language?.toLowerCase();
+    if (mainLang && mainLang !== "n/a" && !lowerCaseTopics.includes(mainLang)) {
+      topics.push(mainLang);
+    }
+
+    let imageUrl = extractImageUrlFromReadme(readmeContent, username, repo.name, repo.default_branch || 'main');
+    if (!imageUrl) {
+      imageUrl = defaultImageIndex.current % 2 === 0 ? '/images/projects/code.png' : '/images/projects/code2.jpg';
+      defaultImageIndex.current++;
+    }
+
+    const lastUpdated = new Date(repo.pushed_at).toLocaleDateString('pt-BR', {
+      day: '2-digit', month: '2-digit', year: 'numeric'
+    });
+
+    return {
+      id: repo.id,
+      name: repo.name.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
+      description: repo.description || `Projeto desenvolvido com ${repo.language || 'tecnologias web'}.`,
+      githubUrl: repo.html_url,
+      demoUrl: demoUrl,
+      hasDemo: hasDemo,
+      topics: topics,
+      lastUpdated: lastUpdated,
+      language: repo.language || 'N/A',
+      stars: repo.stargazers_count,
+      imageUrl: imageUrl,
+      pushed_at_raw: repo.pushed_at,
+      created_at_raw: repo.created_at,
+    };
+};
+
+// Helper to check if Firestore document needs update
+const shouldUpdateFirestoreDoc = (
+    existingData: GithubProjectDoc | undefined,
+    incomingPushedAt: Timestamp
+): { shouldWrite: boolean; isNewDoc: boolean } => {
+    if (!existingData) {
+        console.log(`Decision: Create new document.`);
+        return { shouldWrite: true, isNewDoc: true };
+    }
+
+    const existingPushedAt = existingData.dataUltimaAtualizacaoGithub;
+    const lastDbUpdate = existingData.dataUltimaAtualizacaoBanco;
+    console.log(`Exists. Existing pushed_at: ${existingPushedAt?.toDate()}, Last DB update: ${lastDbUpdate?.toDate()}`);
+
+    // Condition 1: GitHub repo was updated
+    if (!existingPushedAt || existingPushedAt.toMillis() !== incomingPushedAt.toMillis()) {
+        console.log(`Decision: Update needed (GitHub repo updated).`);
+        return { shouldWrite: true, isNewDoc: false };
+    }
+    // Condition 2: 7 days passed since last DB update
+    if (lastDbUpdate && (Date.now() - lastDbUpdate.toMillis() > oneWeekInMs)) {
+        console.log(`Decision: Update needed (7-day refresh).`);
+        return { shouldWrite: true, isNewDoc: false };
+    }
+
+    console.log(`Decision: No update needed.`);
+    return { shouldWrite: false, isNewDoc: false };
+};
+
+
+// --- Main Fetch Function ---
 export async function fetchGithubPagesProjects(username: string): Promise<GithubPagesRepoCache[]> {
   const userIsAdmin = isAdmin();
   const firestoreCacheRef = doc(db, firestoreCacheDocPath);
@@ -179,13 +257,19 @@ export async function fetchGithubPagesProjects(username: string): Promise<Github
     try {
       const firestoreSnap = await getDoc(firestoreCacheRef);
       if (firestoreSnap.exists()) {
-        const firestoreData = firestoreSnap.data() as CachedProjectsBlob;
-        if (firestoreData.timestamp && Date.now() - firestoreData.timestamp.toMillis() < oneWeekInMs) {
-          console.log("Loading projects from Firestore cache blob (admin).");
-          localStorage.setItem(localStorageKey, JSON.stringify({ projects: firestoreData.projects, timestamp: Date.now() }));
-          return firestoreData.projects;
+        const firestoreData = firestoreSnap.data() as FirestoreCachedProjectsBlob; // Use specific type
+        // Check if timestamp exists and is a Timestamp before calling toMillis
+        if (firestoreData.timestamp && typeof firestoreData.timestamp === 'object' && 'toMillis' in firestoreData.timestamp) {
+          if (Date.now() - firestoreData.timestamp.toMillis() < oneWeekInMs) {
+            console.log("Loading projects from Firestore cache blob (admin).");
+            // Update localStorage with number timestamp
+            localStorage.setItem(localStorageKey, JSON.stringify({ projects: firestoreData.projects, timestamp: Date.now() }));
+            return firestoreData.projects;
+          } else {
+            console.log("Firestore cache blob expired (admin).");
+          }
         } else {
-          console.log("Firestore cache blob expired (admin).");
+           console.warn("Firestore cache blob timestamp is missing or not a Firestore Timestamp.");
         }
       } else {
          console.log("No Firestore cache blob found (admin).");
@@ -199,12 +283,17 @@ export async function fetchGithubPagesProjects(username: string): Promise<Github
   try {
     const localDataString = localStorage.getItem(localStorageKey);
     if (localDataString) {
-      const parsedData: CachedProjectsBlob = JSON.parse(localDataString);
-      if (parsedData.timestamp && Date.now() - parsedData.timestamp < oneWeekInMs) {
-        console.log("Loading projects from localStorage cache.");
-        return parsedData.projects;
+      const parsedData: CachedProjectsBlob = JSON.parse(localDataString); // Use specific type
+      // Check if timestamp exists and is a number
+      if (parsedData.timestamp && typeof parsedData.timestamp === 'number') {
+        if (Date.now() - parsedData.timestamp < oneWeekInMs) { // Direct comparison with number
+          console.log("Loading projects from localStorage cache.");
+          return parsedData.projects;
+        } else {
+          console.log("localStorage cache expired.");
+        }
       } else {
-        console.log("localStorage cache expired.");
+         console.warn("localStorage cache timestamp is missing or not a number.");
       }
     }
   } catch (error) {
@@ -223,65 +312,16 @@ export async function fetchGithubPagesProjects(username: string): Promise<Github
 
     const repos: GithubApiRepo[] = await reposResponse.json();
     const relevantRepos = repos.filter(repo => !repo.fork && !repo.archived);
-    let defaultImageIndex = 0;
+    let defaultImageIndex = { current: 0 }; // Use ref object for mutation
 
     const processedProjects: GithubPagesRepoCache[] = await Promise.all(
-      relevantRepos.map(async (repo): Promise<GithubPagesRepoCache> => { // Return non-null
-        const readmeContent = await fetchReadmeContent(username, repo.name);
-        const metadata = readmeContent ? extractReadmeMetadata(readmeContent) : {};
-        const linkInReadme = readmeContent ? findProjectDemoLink(readmeContent, username, repo.name) : null;
-        const demoUrl = metadata.demoUrl || repo.homepage || linkInReadme || `https://${username}.github.io/${repo.name}/`; // Keep original logic for demoUrl determination
-        const hasDemo = !!linkInReadme || !!repo.homepage || !!metadata.demoUrl; // More robust check for demo presence
-
-        const topics = repo.topics || [];
-        if (metadata.category && !topics.map(t => t.toLowerCase()).includes(metadata.category.toLowerCase())) {
-          topics.push(metadata.category);
-        }
-        // Add language and 'web' tag logic if needed (similar to previous version)
-        const lowerCaseTopics = topics.map(t => t.toLowerCase());
-         if (hasDemo && !lowerCaseTopics.includes("web")) {
-           topics.push("web");
-         }
-         const mainLang = repo.language?.toLowerCase();
-         if (mainLang && mainLang !== "n/a" && !lowerCaseTopics.includes(mainLang)) {
-           topics.push(mainLang);
-         }
-
-
-        let imageUrl = extractImageUrlFromReadme(readmeContent, username, repo.name, repo.default_branch || 'main');
-        if (!imageUrl) {
-          imageUrl = defaultImageIndex % 2 === 0 ? '/images/projects/code.png' : '/images/projects/code2.jpg';
-          defaultImageIndex++;
-        }
-
-        const lastUpdated = new Date(repo.pushed_at).toLocaleDateString('pt-BR', {
-          day: '2-digit', month: '2-digit', year: 'numeric'
-        });
-
-        // Map to the Cache structure
-        return {
-          id: repo.id,
-          name: repo.name.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
-          description: repo.description || `Projeto desenvolvido com ${repo.language || 'tecnologias web'}.`,
-          githubUrl: repo.html_url,
-          demoUrl: demoUrl, // URL determined above
-          hasDemo: hasDemo, // Boolean flag
-          topics: topics,
-          lastUpdated: lastUpdated, // Formatted for display
-          language: repo.language || 'N/A',
-          stars: repo.stargazers_count,
-          imageUrl: imageUrl,
-          // Raw data for sync
-          pushed_at_raw: repo.pushed_at, // Keep original ISO string
-          created_at_raw: repo.created_at, // Keep original ISO string
-        };
-      })
+      relevantRepos.map(repo => processRepoData(repo, username, defaultImageIndex)) // Use helper
     );
 
     // --- 4. Update Caches ---
-    const cacheBlobData: CachedProjectsBlob = {
+    const cacheBlobData: CachedProjectsBlob = { // Use localStorage type
       projects: processedProjects,
-      timestamp: Date.now(),
+      timestamp: Date.now(), // Use number timestamp
     };
 
     // Update localStorage
@@ -296,11 +336,12 @@ export async function fetchGithubPagesProjects(username: string): Promise<Github
     if (userIsAdmin) {
       console.log("Admin user detected after API fetch.");
       try {
-        // Update the simple blob cache
-        await setDoc(firestoreCacheRef, {
-          projects: processedProjects,
-          timestamp: serverTimestamp(),
-        });
+        // Update the simple blob cache with Firestore Timestamp
+        const firestoreCacheData: FirestoreCachedProjectsBlob = {
+            projects: processedProjects,
+            timestamp: serverTimestamp() as Timestamp, // Assert as Timestamp after assignment
+        };
+        await setDoc(firestoreCacheRef, firestoreCacheData);
         console.log("Updated Firestore cache blob (admin).");
 
         // Trigger the detailed, project-by-project update
@@ -347,10 +388,13 @@ export const updateFirestoreProjectCollection = async (projectsData: GithubPages
     let errorsEncountered = 0;
 
     try {
+        // Fetch existing documents once to minimize reads (optional optimization)
+        // const existingDocsSnap = await getDocs(projectsCollectionRef);
+        // const existingDocsMap = new Map(existingDocsSnap.docs.map(d => [d.id, d.data() as GithubProjectDoc]));
+
         for (const project of projectsData) {
-            // Add log for each project being processed
             console.log(`updateFirestoreProjectCollection: Processing project ID ${project.id} (${project.name})...`);
-            const docRef = doc(projectsCollectionRef, String(project.id)); // Use GitHub ID as Firestore Doc ID
+            const docRef = doc(projectsCollectionRef, String(project.id));
 
             let incomingPushedAt: Timestamp | null = null;
             let incomingCreatedAt: Timestamp | null = null;
@@ -363,41 +407,15 @@ export const updateFirestoreProjectCollection = async (projectsData: GithubPages
                 continue; // Skip this project if dates are invalid
             }
 
-            let shouldWrite = false;
-            let isNewDoc = false;
-
             try {
+                // Fetch individual doc instead of using map if not pre-fetching
                 const docSnap = await getDoc(docRef);
+                const existingData = docSnap.exists() ? docSnap.data() as GithubProjectDoc : undefined;
 
-                if (docSnap.exists()) {
-                    const existingData = docSnap.data() as GithubProjectDoc;
-                    const existingPushedAt = existingData.dataUltimaAtualizacaoGithub;
-                    const lastDbUpdate = existingData.dataUltimaAtualizacaoBanco;
-                    console.log(`updateFirestoreProjectCollection: [${project.name}] Exists. Existing pushed_at: ${existingPushedAt?.toDate()}, Last DB update: ${lastDbUpdate?.toDate()}`);
+                const { shouldWrite, isNewDoc } = shouldUpdateFirestoreDoc(existingData, incomingPushedAt); // Use helper
 
-
-                    // Condition 1: GitHub repo was updated
-                    if (!existingPushedAt || existingPushedAt.toMillis() !== incomingPushedAt.toMillis()) {
-                        shouldWrite = true;
-                        console.log(`updateFirestoreProjectCollection: [${project.name}] Decision: Update needed (GitHub repo updated).`);
-                    }
-                    // Condition 2: 7 days passed since last DB update
-                    else if (lastDbUpdate && (Date.now() - lastDbUpdate.toMillis() > oneWeekInMs)) {
-                        shouldWrite = true;
-                        console.log(`updateFirestoreProjectCollection: [${project.name}] Decision: Update needed (7-day refresh).`);
-                    } else {
-                         console.log(`updateFirestoreProjectCollection: [${project.name}] Decision: No update needed.`);
-                    }
-
-                } else {
-                    shouldWrite = true;
-                    isNewDoc = true;
-                    console.log(`updateFirestoreProjectCollection: [${project.name}] Decision: Create new document.`);
-                }
-
-                // Prepare data and add to batch if needed
                 if (shouldWrite) {
-                    const projectDocData: GithubProjectDoc = {
+                    const projectDocData: Omit<GithubProjectDoc, 'dataUltimaAtualizacaoBanco'> & { dataUltimaAtualizacaoBanco: FieldValue } = { // Type for update data
                         nome: project.name,
                         descricao: project.description,
                         urlRepositorio: project.githubUrl,
@@ -405,14 +423,14 @@ export const updateFirestoreProjectCollection = async (projectsData: GithubPages
                         linguagemPrincipal: project.language,
                         dataCriacao: incomingCreatedAt,
                         dataUltimaAtualizacaoGithub: incomingPushedAt,
-                        dataUltimaAtualizacaoBanco: serverTimestamp(),
+                        dataUltimaAtualizacaoBanco: serverTimestamp(), // Use FieldValue here
                         urlDemo: project.demoUrl,
                         temDemo: project.hasDemo,
                         tags: project.topics,
                         estrelas: project.stars,
                     };
                     console.log(`updateFirestoreProjectCollection: [${project.name}] Adding ${isNewDoc ? 'create' : 'update'} to batch.`);
-                    batch.set(docRef, projectDocData, { merge: !isNewDoc });
+                    batch.set(docRef, projectDocData, { merge: !isNewDoc }); // Use set with merge for both create/update
                     if (isNewDoc) creationsPerformed++; else updatesPerformed++;
                 }
             } catch (firestoreError) {
@@ -467,8 +485,7 @@ export const syncLocalStorageToFirestore = async () => {
 
       if (localCacheBlob.projects && localCacheBlob.projects.length > 0) {
         console.log("syncLocalStorageToFirestore: Triggering updateFirestoreProjectCollection...");
-        // Call the intelligent update function with data from localStorage
-        await updateFirestoreProjectCollection(localCacheBlob.projects);
+        await updateFirestoreProjectCollection(localCacheBlob.projects); // Call the refactored update function
         console.log("syncLocalStorageToFirestore: updateFirestoreProjectCollection finished.");
       } else {
         console.log("syncLocalStorageToFirestore: No project data found in parsed localStorage data.");

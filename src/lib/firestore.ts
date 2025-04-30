@@ -8,26 +8,61 @@ import {
   where,
   updateDoc,
   serverTimestamp,
+  Timestamp, // Import Timestamp
   DocumentReference,
   DocumentData,
-  QueryDocumentSnapshot,
-  CollectionReference
+  QueryDocumentSnapshot
 } from "firebase/firestore";
 import { auth } from "./firebase";
 import { db } from "./firebase";
 
-// Main content interfaces
+// --- Interfaces ---
 export interface ContentItem {
   id: string;
-  type: string;
+  type: string; // Example required field
   text?: string;
-  updatedAt: Date;
+  updatedAt: Timestamp; // Use Timestamp or FieldValue for serverTimestamp
   [key: string]: any;
 }
 
+// --- Helper Functions ---
+
+// Generic update function
+export const updateFirestoreDocument = async (
+  docRef: DocumentReference<DocumentData>,
+  data: Partial<Omit<ContentItem, 'id'>> // Exclude 'id' from data payload
+): Promise<Partial<ContentItem>> => {
+  const updateData = {
+    ...data,
+    updatedAt: serverTimestamp() // Always set server timestamp on update
+  };
+  await updateDoc(docRef, updateData);
+  // Return the data intended for update, not including the serverTimestamp object
+  return data as Partial<ContentItem>;
+};
+
+// --- Firestore Operations ---
+
+const LANGUAGES_COLLECTION = "languages";
+const ITEMS_SUBCOLLECTION = "items";
+
+// New helper: convert doc snapshot to ContentItem
+function convertDocToContentItem(doc: QueryDocumentSnapshot<DocumentData>): ContentItem {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    type: data.type || "unknown",
+    updatedAt: data.updatedAt || serverTimestamp(),
+    ...data
+  } as ContentItem;
+}
+
+// New type for full section which may contain both single items and arrays
+type FullSection = Record<string, ContentItem | ContentItem[]>;
+
 // Function to fetch a language document
 export const getLanguage = async (langCode: string) => {
-  const langRef = doc(db, "languages", langCode);
+  const langRef = doc(db, LANGUAGES_COLLECTION, langCode);
   const langSnap = await getDoc(langRef);
 
   if (langSnap.exists()) {
@@ -39,7 +74,7 @@ export const getLanguage = async (langCode: string) => {
 
 // Function to fetch all languages
 export const getLanguages = async () => {
-  const langCollection = collection(db, "languages");
+  const langCollection = collection(db, LANGUAGES_COLLECTION);
   const langSnapshot = await getDocs(langCollection);
 
   return langSnapshot.docs.map(doc => ({
@@ -48,106 +83,54 @@ export const getLanguages = async () => {
   }));
 };
 
-// Function to fetch a specific section
-export const getSection = async (langCode: string, sectionId: string) => {
-  const sectionRef = collection(doc(db, "languages", langCode), sectionId);
+export const getSection = async (
+  langCode: string,
+  sectionId: string
+): Promise<Record<string, ContentItem>> => {
+  const sectionRef = collection(doc(db, LANGUAGES_COLLECTION, langCode), sectionId);
   const sectionSnapshot = await getDocs(sectionRef);
 
   const result: Record<string, ContentItem> = {};
-
   sectionSnapshot.docs.forEach(doc => {
-    result[doc.id] = {
-      id: doc.id,
-      ...doc.data() as ContentItem
-    };
+    result[doc.id] = convertDocToContentItem(doc);
   });
 
   return result;
 };
 
-// Function to fetch items from a subcollection
-export const getSectionItems = async (langCode: string, sectionId: string, subCollectionId: string) => {
+export const getSectionItems = async (
+  langCode: string,
+  sectionId: string,
+  subCollectionId: string
+): Promise<ContentItem[]> => {
   try {
+    // Instead of passing multiple path segments, join them into one string.
     const itemsCollection = collection(
-      doc(db, "languages", langCode),
-      sectionId,
-      subCollectionId,
-      "items"
+      doc(db, LANGUAGES_COLLECTION, langCode),
+      `${sectionId}/${subCollectionId}/${ITEMS_SUBCOLLECTION}`
     );
 
     const itemsSnapshot = await getDocs(itemsCollection);
-
-    return itemsSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    return itemsSnapshot.docs.map(doc => convertDocToContentItem(doc));
   } catch (error) {
     console.error(`Error fetching ${subCollectionId} items:`, error);
     return [];
   }
 };
 
-// Function to update a section item
-export const updateSectionItem = async (
+export const getFullSection = async (
   langCode: string,
-  sectionId: string,
-  itemId: string,
-  data: Partial<ContentItem>
-) => {
-  const itemRef = doc(
-    collection(doc(db, "languages", langCode), sectionId),
-    itemId
-  );
-
-  await updateDoc(itemRef, {
-    ...data,
-    updatedAt: serverTimestamp()
-  });
-
-  return { id: itemId, ...data };
-};
-
-// Function to update an item in a subcollection
-export const updateSubcollectionItem = async (
-  langCode: string,
-  sectionId: string,
-  subCollectionId: string,
-  itemId: string,
-  data: Partial<ContentItem>
-) => {
-  const itemRef = doc(
-    collection(
-      doc(db, "languages", langCode),
-      sectionId,
-      subCollectionId,
-      "items"
-    ),
-    itemId
-  );
-
-  await updateDoc(itemRef, {
-    ...data,
-    updatedAt: serverTimestamp()
-  });
-
-  return { id: itemId, ...data };
-};
-
-// Helper to get a full section with subcollections
-export const getFullSection = async (langCode: string, sectionId: string) => {
-  // First get the main section items
+  sectionId: string
+): Promise<FullSection> => {
+  // Get main section items as a record of ContentItem
   const sectionData = await getSection(langCode, sectionId);
+  const result: FullSection = { ...sectionData };
 
-  // Check if there are any subcollections for this section
-  const sectionRef = doc(db, "languages", langCode);
+  // List of potential subcollections
   const possibleSubcollections = ["items", "categories", "roles", "paragraphs", "jobInfo"];
-
-  const result = { ...sectionData };
-
-  // Try to fetch each possible subcollection
   for (const subColl of possibleSubcollections) {
     try {
-      const subItems = await getSectionItems(langCode, sectionId, subColl);
+      const subItems: ContentItem[] = await getSectionItems(langCode, sectionId, subColl);
       if (subItems.length > 0) {
         result[subColl] = subItems;
       }
@@ -155,7 +138,6 @@ export const getFullSection = async (langCode: string, sectionId: string) => {
       // Ignore errors from missing collections
     }
   }
-
   return result;
 };
 

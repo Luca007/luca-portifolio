@@ -18,8 +18,10 @@ import { auth } from "@/lib/firebase"; // Import auth instance
 import { onAuthStateChanged, User } from "firebase/auth"; // Import User type
 import { Input } from "@/components/ui/input";
 import { imageConfig, throttle } from "@/lib/utils";
-import { LucideProps } from "lucide-react"; // Importe LucideProps
+import { LucideProps, LucideIcon } from "lucide-react"; // Import LucideIcon
+import { Dispatch, SetStateAction } from "react"; // Import types
 
+// --- Interfaces ---
 interface Project {
   id: number;
   name: string;
@@ -34,8 +36,8 @@ interface Project {
   hasDemo?: boolean;
 }
 
-// Mapeamento de linguagens para ícones
-const languageIcons: Record<string, React.ComponentType<LucideProps>> = {
+// --- Language Icons Map ---
+const languageIcons: Record<string, LucideIcon> = { // Use LucideIcon type
   typescript: Code, // Ou um ícone específico de TS se disponível
   javascript: Code, // Ou um ícone específico de JS
   html: FileCode,
@@ -50,53 +52,154 @@ const languageIcons: Record<string, React.ComponentType<LucideProps>> = {
   'n/a': FileQuestion, // Ícone padrão para N/A ou desconhecido
 };
 
-export default function Projects() {
+
+// --- ProjectCard Component ---
+interface ProjectCardProps {
+  project: Project;
+  setSelectedTag: Dispatch<SetStateAction<string | null>>;
+}
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, setSelectedTag }) => {
+  const displayedTopics = project.topics.filter(
+    (topic) =>
+      topic.toLowerCase() !== project.language.toLowerCase() &&
+      topic.toLowerCase() !== "web"
+  );
+  const langKey = project.language.toLowerCase();
+  const LanguageIcon = languageIcons[langKey] || languageIcons["n/a"];
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      transition={{
+        duration: 0.3,
+        layout: { duration: 0.6, type: "spring", damping: 30, stiffness: 200 }
+      }}
+      whileHover={{ y: -5 }}
+      className="h-full"
+    >
+      <Card className="overflow-hidden bg-gradient-to-br from-background to-background/90 border border-border/30 hover:border-primary/20 transition-all hover:shadow-xl shadow-lg shadow-black/5 hover:shadow-primary/5 h-full flex flex-col group"> {/* Added group class */}
+        <div className="relative h-48 overflow-hidden">
+          <Image
+            src={project.imageUrl}
+            alt={project.name}
+            fill
+            sizes={imageConfig.getOptimalSizes()}
+            className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+            {...imageConfig.defaultImageProps}
+            onError={(e) => console.error(`Image failed to load: ${project.imageUrl}`, e)}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-70"></div>
+
+          {/* Language and Web badge */}
+          <div className="absolute top-3 left-3 bg-background/80 backdrop-blur-sm border border-border/40 px-2 py-1 rounded-md flex flex-col items-start space-y-1">
+            <div className="flex items-center">
+              <LanguageIcon className="h-3 w-3 mr-1 text-primary" />
+              <span className="text-xs font-medium">{project.language}</span>
+            </div>
+            {project.hasDemo && (
+              <div className="flex items-center">
+                <Globe className="h-3 w-3 mr-1 text-primary" />
+                <span className="text-xs font-medium">Web</span>
+              </div>
+            )}
+          </div>
+
+          {/* Star count if available */}
+          {project.stars > 0 && (
+            <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm border border-border/40 px-2 py-1 rounded-md flex items-center">
+              <Star className="h-3 w-3 mr-1 text-yellow-400" />
+              <span className="text-xs font-medium">{project.stars}</span>
+            </div>
+          )}
+
+          {/* Floating tags */}
+          <div className="absolute bottom-3 left-3 flex flex-wrap gap-1 max-w-[90%]">
+            {displayedTopics.slice(0, 3).map((tag, tagIndex) => (
+              <span
+                key={tagIndex}
+                className="inline-block bg-primary/20 backdrop-blur-sm text-primary px-2 py-0.5 rounded-full text-xs font-medium truncate max-w-[100px]"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSelectedTag(tag);
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+            {displayedTopics.length > 3 && (
+              <span className="inline-block bg-muted/40 backdrop-blur-sm text-muted-foreground px-2 py-0.5 rounded-full text-xs">
+                +{displayedTopics.length - 3}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <CardContent className="p-6 flex-grow">
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold group-hover:text-primary transition-colors line-clamp-1">
+                {project.name}
+              </h3>
+              <div className="flex items-center text-xs text-muted-foreground">
+                <Calendar className="h-3 w-3 mr-1" />
+                <span>{project.lastUpdated}</span>
+              </div>
+            </div>
+
+            <p className="text-muted-foreground text-sm line-clamp-3">
+              {project.description}
+            </p>
+          </div>
+        </CardContent>
+
+        <CardFooter className="p-6 pt-0 flex justify-between gap-4 mt-auto">
+          <Link href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+            <Button variant="outline" size="sm" className="w-full gap-1 group">
+              <Github className="h-4 w-4 group-hover:-translate-y-1 transition-transform" />
+              <span>GitHub</span>
+            </Button>
+          </Link>
+
+          {project.hasDemo && project.demoUrl && (
+            <Link href={project.demoUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+              <Button
+                variant="default"
+                size="sm"
+                className="w-full gap-1 bg-gradient-to-r from-primary to-blue-500 hover:shadow-md hover:shadow-primary/20 group"
+              >
+                <Globe className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                <span>Demo</span>
+              </Button>
+            </Link>
+          )}
+        </CardFooter>
+      </Card>
+    </motion.div>
+  );
+};
+
+// --- Projects Component ---
+const Projects: React.FC = () => {
   const { content } = useLanguage();
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(""); // Estado para searchTerm
+  const [allTags, setAllTags] = useState<string[]>([]);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [allTags, setAllTags] = useState<string[]>([]); // Estado para allTags
-  const [error, setError] = useState<string | null>(null); // Estado para error
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Effect to listen for Auth changes and trigger sync
-  useEffect(() => {
-    console.log("Setting up onAuthStateChanged listener...");
-    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => { // Explicitly type user
-      if (user) {
-        // User is signed in
-        console.log("onAuthStateChanged: User signed in", user.uid);
-        // Check if the logged-in user is considered admin (i.e., anyone logged in)
-        // isAdmin() internally checks auth.currentUser, which should be populated now.
-        if (isAdmin()) {
-          console.log("onAuthStateChanged: Admin detected, calling syncLocalStorageToFirestore...");
-          // Trigger the sync function from localStorage to Firestore
-          syncLocalStorageToFirestore(); // Call the function
-        } else {
-           console.log("onAuthStateChanged: Non-admin user logged in, sync skipped.");
-        }
-      } else {
-        // User is signed out
-        console.log("onAuthStateChanged: User signed out");
-      }
-    });
-
-    // Cleanup subscription on unmount
-    return () => {
-        console.log("Cleaning up onAuthStateChanged listener.");
-        unsubscribe();
-    }
-  }, []); // Run only once on component mount
-
+  // --- Effects ---
   useEffect(() => {
     const loadProjects = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        setError(null); // Limpa o erro antes de carregar
         const githubProjects = await fetchGithubPagesProjects("Luca007");
 
-        // Extraindo todas as tags únicas
         const tags = Array.from(new Set(githubProjects.flatMap(project => project.topics))).sort();
 
         setProjects(githubProjects);
@@ -450,4 +553,6 @@ export default function Projects() {
       </div>
     </section>
   );
-}
+};
+
+export default Projects;

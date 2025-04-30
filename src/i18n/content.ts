@@ -46,6 +46,24 @@ export interface Content {
       tools: string;
       languages: string;
     };
+    programmingSkills: {
+      name: string;
+      icon: string;
+      description: string;
+      level: number;
+    }[];
+    toolsSkills: {
+      name: string;
+      icon: string;
+      description: string;
+      level: number;
+    }[];
+    languageSkills: {
+      name: string;
+      icon: string;
+      description: string;
+      level: number;
+    }[];
   };
   experiences: {
     title: string;
@@ -95,7 +113,7 @@ export interface Content {
   footer: {
     copyright: string;
     poweredBy: string;
-    description: string; // Added new field for footer description
+    description: string;
   };
   resume: {
     download: string;
@@ -120,7 +138,7 @@ export interface Content {
         email: string;
         phone: string;
         location: string;
-      }
+      };
     };
   };
 }
@@ -173,7 +191,115 @@ export const EN_CONTENT: Content = {
       programming: "Programming Languages",
       tools: "Tools & Platforms",
       languages: "Languages"
-    }
+    },
+    programmingSkills: [
+      {
+        name: "HTML & CSS",
+        icon: "FileCode",
+        description: "Responsive UI/UX development for various devices.",
+        level: 95
+      },
+      {
+        name: "JavaScript",
+        icon: "Braces",
+        description: "Advanced development with animations and API integration.",
+        level: 90
+      },
+      {
+        name: "TypeScript",
+        icon: "Code",
+        description: "Static typing development in React and Next.js projects.",
+        level: 85
+      },
+      {
+        name: "React & Next.js",
+        icon: "ReactNextJs",
+        description: "Building modern applications with hybrid rendering.",
+        level: 88
+      },
+      {
+        name: "Node.js",
+        icon: "Server",
+        description: "Creating robust backend services and REST APIs.",
+        level: 82
+      },
+      {
+        name: "Java",
+        icon: "Coffee",
+        description: "Maintaining and developing applications and interfaces.",
+        level: 85
+      },
+      {
+        name: "Python",
+        icon: "Code",
+        description: "Developing personal applications and AI with recognition.",
+        level: 80
+      },
+      {
+        name: "SQL & NoSQL",
+        icon: "Database",
+        description: "Managing and modeling relational and non-relational databases.",
+        level: 78
+      },
+      {
+        name: "C++",
+        icon: "Cpu",
+        description: "Developing personal projects with Arduino and hardware.",
+        level: 75
+      }
+    ],
+    toolsSkills: [
+      {
+        name: "GitHub Copilot & ChatGPT",
+        icon: "Bot",
+        description: "Using AI to accelerate development.",
+        level: 90
+      },
+      {
+        name: "Firebase",
+        icon: "Database",
+        description: "Executing projects with Google storage and deployment.",
+        level: 85
+      },
+      {
+        name: "AWS",
+        icon: "Cloud",
+        description: "Setting up Docker environments and basic knowledge in Amazon Linux.",
+        level: 80
+      },
+      {
+        name: "Git & GitHub",
+        icon: "GitBranch",
+        description: "Version control and collaborative work on projects.",
+        level: 85
+      },
+      {
+        name: "AI Agents",
+        icon: "Brain",
+        description: "Developing AI agents with platforms like Hugging Face.",
+        level: 75
+      }
+    ],
+    languageSkills: [
+      {
+        name: "Portuguese",
+        icon: "Globe",
+        description: "Fluent",
+        level: 100
+      },
+      {
+        name: "English",
+        icon: "Globe",
+        description: "Advanced",
+        level: 80
+      },
+      {
+        name: "Spanish",
+        icon: "Globe",
+        description: "Basic",
+        level: 60
+      }
+    ]
   },
   experiences: {
     title: "Experience",
@@ -335,10 +461,118 @@ export const PT_CONTENT: Content = {
     title: "Habilidades",
     description: "Tecnologias e ferramentas com as quais trabalho",
     skillCategories: {
-      programming: "Linguagens de Programação",
-      tools: "Ferramentas & Plataformas",
+      programming: "Programação",
+      tools: "Ferramentas",
       languages: "Idiomas"
-    }
+    },
+    programmingSkills: [
+      {
+        name: "HTML & CSS",
+        icon: "FileCode",
+        description: "Desenvolvimento de UI/UX responsivo para diversos dispositivos.",
+        level: 95
+      },
+      {
+        name: "JavaScript",
+        icon: "Braces",
+        description: "Desenvolvimento avançado com animações e conexão com APIs.",
+        level: 90
+      },
+      {
+        name: "TypeScript",
+        icon: "Code",
+        description: "Desenvolvimento com tipagem estática em projetos React e Next.js.",
+        level: 85
+      },
+      {
+        name: "React & Next.js",
+        icon: "ReactNextJs",
+        description: "Construção de aplicações modernas com renderização híbrida.",
+        level: 88
+      },
+      {
+        name: "Node.js",
+        icon: "Server",
+        description: "Criação de serviços backend e APIs REST robustas.",
+        level: 82
+      },
+      {
+        name: "Java",
+        icon: "Coffee",
+        description: "Manutenção e desenvolvimento de aplicações e interfaces.",
+        level: 85
+      },
+      {
+        name: "Python",
+        icon: "Code",
+        description: "Desenvolvimento de aplicações pessoais e IA com reconhecimento.",
+        level: 80
+      },
+      {
+        name: "SQL & NoSQL",
+        icon: "Database",
+        description: "Gestão e modelagem de bases de dados relacionais e não relacionais.",
+        level: 78
+      },
+      {
+        name: "C++",
+        icon: "Cpu",
+        description: "Desenvolvimento de projetos pessoais com Arduino e hardware.",
+        level: 75
+      }
+    ],
+    toolsSkills: [
+      {
+        name: "GitHub Copilot & ChatGPT",
+        icon: "Bot",
+        description: "Uso de IA para acelerar o desenvolvimento.",
+        level: 90
+      },
+      {
+        name: "Firebase",
+        icon: "Database",
+        description: "Realização de projetos com armazenamento e deploy do Google.",
+        level: 85
+      },
+      {
+        name: "AWS",
+        icon: "Cloud",
+        description: "Configuração de ambientes Docker e conhecimentos básicos em Amazon Linux.",
+        level: 80
+      },
+      {
+        name: "Git & GitHub",
+        icon: "GitBranch",
+        description: "Controle de versão e trabalho colaborativo em projetos.",
+        level: 85
+      },
+      {
+        name: "AI Agents",
+        icon: "Brain",
+        description: "Desenvolvimento de agentes de IA com plataformas como Hugging Face.",
+        level: 75
+      }
+    ],
+    languageSkills: [
+      {
+        name: "Português",
+        icon: "Globe",
+        description: "Fluente",
+        level: 100
+      },
+      {
+        name: "Inglês",
+        icon: "Globe",
+        description: "Avançado",
+        level: 80
+      },
+      {
+        name: "Espanhol",
+        icon: "Globe",
+        description: "Básico",
+        level: 60
+      }
+    ]
   },
   experiences: {
     title: "Experiência",
@@ -500,10 +734,118 @@ export const ES_CONTENT: Content = {
     title: "Habilidades",
     description: "Tecnologías y herramientas con las que trabajo",
     skillCategories: {
-      programming: "Lenguajes de Programación",
-      tools: "Herramientas y Plataformas",
+      programming: "Programación",
+      tools: "Herramientas",
       languages: "Idiomas"
-    }
+    },
+    programmingSkills: [
+      {
+        name: "HTML & CSS",
+        icon: "FileCode",
+        description: "Desarrollo de UI/UX responsivo para varios dispositivos.",
+        level: 95
+      },
+      {
+        name: "JavaScript",
+        icon: "Braces",
+        description: "Desarrollo avanzado con animaciones e integración de API.",
+        level: 90
+      },
+      {
+        name: "TypeScript",
+        icon: "Code",
+        description: "Desarrollo con tipado estático en proyectos React y Next.js.",
+        level: 85
+      },
+      {
+        name: "React & Next.js",
+        icon: "ReactNextJs",
+        description: "Construcción de aplicaciones modernas con renderizado híbrido.",
+        level: 88
+      },
+      {
+        name: "Node.js",
+        icon: "Server",
+        description: "Creación de servicios backend y APIs REST robustas.",
+        level: 82
+      },
+      {
+        name: "Java",
+        icon: "Coffee",
+        description: "Mantenimiento y desarrollo de aplicaciones e interfaces.",
+        level: 85
+      },
+      {
+        name: "Python",
+        icon: "Code",
+        description: "Desarrollo de aplicaciones personales e IA con reconocimiento.",
+        level: 80
+      },
+      {
+        name: "SQL & NoSQL",
+        icon: "Database",
+        description: "Gestión y modelado de bases de datos relacionales y no relacionales.",
+        level: 78
+      },
+      {
+        name: "C++",
+        icon: "Cpu",
+        description: "Desarrollo de proyectos personales con Arduino y hardware.",
+        level: 75
+      }
+    ],
+    toolsSkills: [
+      {
+        name: "GitHub Copilot & ChatGPT",
+        icon: "Bot",
+        description: "Uso de IA para acelerar el desarrollo.",
+        level: 90
+      },
+      {
+        name: "Firebase",
+        icon: "Database",
+        description: "Realización de proyectos con almacenamiento y despliegue de Google.",
+        level: 85
+      },
+      {
+        name: "AWS",
+        icon: "Cloud",
+        description: "Configuración de entornos Docker y conocimientos básicos en Amazon Linux.",
+        level: 80
+      },
+      {
+        name: "Git & GitHub",
+        icon: "GitBranch",
+        description: "Control de versiones y trabajo colaborativo en proyectos.",
+        level: 85
+      },
+      {
+        name: "AI Agents",
+        icon: "Brain",
+        description: "Desarrollo de agentes de IA con plataformas como Hugging Face.",
+        level: 75
+      }
+    ],
+    languageSkills: [
+      {
+        name: "Portugués",
+        icon: "Globe",
+        description: "Fluido",
+        level: 100
+      },
+      {
+        name: "Inglés",
+        icon: "Globe",
+        description: "Avanzado",
+        level: 80
+      },
+      {
+        name: "Español",
+        icon: "Globe",
+        description: "Básico",
+        level: 60
+      }
+    ]
   },
   experiences: {
     title: "Experiencia",

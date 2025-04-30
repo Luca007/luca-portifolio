@@ -19,6 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
+    // Add suppressHydrationWarning here
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <Suspense fallback={<div>Loading...</div>}>

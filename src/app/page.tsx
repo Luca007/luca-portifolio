@@ -9,6 +9,7 @@ const About = lazy(() => import("@/components/About"));
 const Skills = lazy(() => import("@/components/Skills"));
 const Experience = lazy(() => import("@/components/Experience"));
 const Education = lazy(() => import("@/components/Education"));
+// Correct the Projects import by removing the then() clause:
 const Projects = lazy(() => import("@/components/Projects"));
 const Contact = lazy(() => import("@/components/Contact"));
 const Footer = lazy(() => import("@/components/Footer"));
@@ -17,7 +18,8 @@ const AdminPanel = lazy(() => import("@/components/AdminPanel"));
 
 // Simple placeholders that don't cause layout shifts
 const SectionPlaceholder = ({ height = "min-h-screen", id = "" }) => (
-  <section className={`${height} bg-[#050e1b]`} id={id}></section>
+  // Use theme background color
+  <section className={`${height} bg-background`} id={id}></section>
 );
 
 export default function Home() {

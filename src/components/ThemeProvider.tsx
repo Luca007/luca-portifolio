@@ -1,15 +1,22 @@
 "use client";
-
 import * as React from "react";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { ThemeProvider as NextThemesProvider, ThemeProviderProps } from "next-themes";
 
-export function ThemeProvider({
-  children,
-  ...props
-}: {
+// Extend NextThemesProvider props to ensure children are required.
+interface CustomThemeProviderProps extends ThemeProviderProps {
   children: React.ReactNode;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-}) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+}
+
+export function ThemeProvider({ children, ...props }: CustomThemeProviderProps) {
+  return (
+    <NextThemesProvider 
+      attribute="class" 
+      defaultTheme="system" 
+      enableSystem 
+      disableTransitionOnChange 
+      {...props}
+    >
+      {children}
+    </NextThemesProvider>
+  );
 }

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import SimpleFixedHeader from './Header';
-import { useScroll, useSpring, motion } from "framer-motion";
+import { motion, useScroll, useSpring } from "framer-motion"; // Adicionado useScroll e useSpring
 
 export default function SimpleFixedNavigation() {
   const { scrollYProgress } = useScroll();

@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,22 +15,98 @@ import {
   Bot,
   Braces,
   Coffee,
+  CheckCircle,
   Cloud,
   PenTool,
   Brain,
-  CheckCircle
+  Rocket
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
 
-type Skill = {
+// --- Types ---
+export interface Skill {
   name: string;
   icon: React.ReactNode;
   description: string;
   level: number;
+}
+
+interface SkillCardProps {
+  skill: Skill;
+  isHovered: boolean;
+  setHoveredSkill: (name: string | null) => void;
+}
+
+interface SkillLevelProps {
+  skill: Skill;
+  isHovered: boolean;
+}
+
+interface SkillCategoryProps {
+  skills: Skill[];
+  title: string;
+  icon: React.ReactNode;
+  setHoveredSkill: (name: string | null) => void;
+  hoveredSkill: string | null;
+}
+
+// Função que mapeia identificadores para componentes de ícone
+const getSkillIcon = (iconId: string): React.ReactNode => {
+  const map: Record<string, React.ReactNode> = {
+    FileCode: <FileCode className="h-6 w-6 text-orange-400" />,
+    Braces: <Braces className="h-6 w-6 text-yellow-400" />,
+    Code: <Code className="h-6 w-6 text-blue-600" />,
+    Globe: <Globe className="h-6 w-6 text-cyan-500" />,
+    Server: <Server className="h-6 w-6 text-green-500" />,
+    Coffee: <Coffee className="h-6 w-6 text-red-500" />,
+    Database: <Database className="h-6 w-6 text-purple-500" />,
+    Cpu: <Cpu className="h-6 w-6 text-purple-400" />,
+    Bot: <Bot className="h-6 w-6 text-green-400" />,
+    GitBranch: <GitBranch className="h-6 w-6 text-purple-500" />,
+    Cloud: <Cloud className="h-6 w-6 text-sky-500" />,
+    PenTool: <PenTool className="h-6 w-6 text-indigo-500" />,
+    Brain: <Brain className="h-6 w-6 text-pink-500" />,
+    ReactNextJs: <Rocket className="h-6 w-6 text-violet-500" /> // altered icon for React Next.js
+  };
+  return map[iconId] || <Globe className="h-6 w-6 text-cyan-500" />;
 };
 
-const SkillCard = ({ skill, isHovered, setHoveredSkill }) => (
+// Função para "transformar" um array de skills do content usando getSkillIcon
+const parseSkills = (skillsData: any[]): Skill[] => 
+  skillsData.map(skill => ({
+    ...skill,
+    icon: getSkillIcon(skill.icon)
+  }));
+
+// --- Sub-Components ---
+
+// New Component para descrição com animação condicional
+const SkillDescription: React.FC<{ isHovered: boolean; description: string }> = ({ isHovered, description }) => {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [contentHeight, setContentHeight] = useState(0);
+  const baseHeight = 40; // 2.5rem aproximadamente 40px
+
+  useEffect(() => {
+    if (ref.current) {
+      setContentHeight(ref.current.scrollHeight);
+    }
+  }, [description]);
+
+  // Se o conteúdo não exceder o baseHeight, não animamos a altura
+  const animateHeight = contentHeight > baseHeight ? (isHovered ? contentHeight : baseHeight) : "auto";
+
+  return (
+    <motion.p
+      ref={ref}
+      className="text-xs sm:text-sm text-muted-foreground line-clamp-2 group-hover:line-clamp-none transition-all duration-500"
+      animate={{ height: animateHeight }}
+    >
+      {description}
+    </motion.p>
+  );
+};
+
+const SkillCard: React.FC<SkillCardProps> = ({ skill, isHovered, setHoveredSkill }) => (
   <motion.div
     key={skill.name}
     whileHover={{ y: -5 }}
@@ -56,14 +133,7 @@ const SkillCard = ({ skill, isHovered, setHoveredSkill }) => (
                 </motion.span>
               )}
             </h4>
-            <motion.p
-              className="text-xs sm:text-sm text-muted-foreground line-clamp-2 group-hover:line-clamp-none transition-all duration-500"
-              initial={{ height: "2.5rem" }}
-              animate={{ height: isHovered ? "auto" : "2.5rem" }}
-              transition={{ duration: 0.3 }}
-            >
-              {skill.description}
-            </motion.p>
+            <SkillDescription isHovered={isHovered} description={skill.description} />
             <SkillLevel skill={skill} isHovered={isHovered} />
           </div>
         </div>
@@ -72,11 +142,15 @@ const SkillCard = ({ skill, isHovered, setHoveredSkill }) => (
   </motion.div>
 );
 
-const SkillLevel = ({ skill, isHovered }) => {
-  const levelText = skill.level >= 90 ? "Expert" :
-                    skill.level >= 80 ? "Advanced" :
-                    skill.level >= 60 ? "Intermediate" :
-                    "Basic";
+const SkillLevel: React.FC<SkillLevelProps> = ({ skill, isHovered }) => {
+  const levelText =
+    skill.level >= 90
+      ? "Expert"
+      : skill.level >= 80
+      ? "Advanced"
+      : skill.level >= 60
+      ? "Intermediate"
+      : "Basic";
 
   return (
     <div className="w-full mt-3">
@@ -105,7 +179,13 @@ const SkillLevel = ({ skill, isHovered }) => {
   );
 };
 
-const SkillCategory = ({ skills, title, icon, setHoveredSkill, hoveredSkill }) => (
+const SkillCategory: React.FC<SkillCategoryProps> = ({
+  skills,
+  title,
+  icon,
+  setHoveredSkill,
+  hoveredSkill
+}) => (
   <div className="space-y-4">
     <motion.h3
       className="text-lg sm:text-xl font-semibold flex items-center"
@@ -132,134 +212,24 @@ const SkillCategory = ({ skills, title, icon, setHoveredSkill, hoveredSkill }) =
   </div>
 );
 
+// --- Main Skills Component ---
 export default function Skills() {
   const { content } = useLanguage();
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
 
-  const programmingSkills: Skill[] = [
-    {
-      name: "HTML & CSS",
-      icon: <FileCode className="h-6 w-6 text-orange-400" />,
-      description: "Experience in UI/UX development for various websites, including personal projects with responsive design for mobile and various monitors.",
-      level: 95,
-    },
-    {
-      name: "JavaScript",
-      icon: <Braces className="h-6 w-6 text-yellow-400" />,
-      description: "Advanced experience in JS for animations, functions, and application features, as well as backend development with JSON file manipulation and API connections.",
-      level: 90,
-    },
-    {
-      name: "TypeScript",
-      icon: <Code className="h-6 w-6 text-blue-600" />,
-      description: "Strong experience with TypeScript for type-safe application development, including React projects and Next.js applications.",
-      level: 85,
-    },
-    {
-      name: "React & Next.js",
-      icon: <Globe className="h-6 w-6 text-cyan-500" />,
-      description: "Proficient in building modern web applications using React and Next.js with server-side rendering, static generation, and dynamic routes.",
-      level: 88,
-    },
-    {
-      name: "Node.js",
-      icon: <Server className="h-6 w-6 text-green-500" />,
-      description: "Experience building backend services, REST APIs, and server-side applications using Node.js and Express.",
-      level: 82,
-    },
-    {
-      name: "Java",
-      icon: <Coffee className="h-6 w-6 text-red-500" />,
-      description: "Experience maintaining tools, fixing bugs, creating interfaces, developing applications, and debugging them.",
-      level: 85,
-    },
-    {
-      name: "Python",
-      icon: <Code className="h-6 w-6 text-blue-400" />,
-      description: "Experience developing applications for personal use, such as a ChatBot, a hand recognition AI using WebCam, etc.",
-      level: 80,
-    },
-    {
-      name: "SQL & NoSQL",
-      icon: <Database className="h-6 w-6 text-purple-500" />,
-      description: "Experience with database design and management, including MySQL, PostgreSQL, and MongoDB for various application needs.",
-      level: 78,
-    },
-    {
-      name: "C++",
-      icon: <Cpu className="h-6 w-6 text-purple-400" />,
-      description: "Experience in C++ application development for personal Arduino projects, as well as experience with the hardware.",
-      level: 75,
-    },
-  ];
-
-  const toolsSkills: Skill[] = [
-    {
-      name: "GitHub Copilot & ChatGPT",
-      icon: <Bot className="h-6 w-6 text-green-400" />,
-      description: "Use of artificial intelligence in daily development to accelerate the process.",
-      level: 90,
-    },
-    {
-      name: "Firebase (Google)",
-      icon: <Database className="h-6 w-6 text-orange-500" />,
-      description: "Experience with personal and free projects using Google's storage and deployment tool.",
-      level: 85,
-    },
-    {
-      name: "AWS (Amazon)",
-      icon: <Cloud className="h-6 w-6 text-blue-500" />,
-      description: "Experience configuring environments for deploying applications in Docker, plus basic knowledge of Amazon Linux 2.",
-      level: 80,
-    },
-    {
-      name: "Git & GitHub",
-      icon: <GitBranch className="h-6 w-6 text-purple-500" />,
-      description: "Experience with version control and collaborative development.",
-      level: 85,
-    },
-    {
-      name: "AI Agents",
-      icon: <Brain className="h-6 w-6 text-indigo-400" />,
-      description: "Experience developing AI agents through open applications like Hugging Face and other platforms.",
-      level: 75,
-    },
-  ];
-
-  const languageSkills: Skill[] = [
-    {
-      name: "English",
-      icon: <Globe className="h-6 w-6 text-blue-400" />,
-      description: "Fluent in English, completed advanced course at Casa Thomas Jefferson.",
-      level: 100,
-    },
-    {
-      name: "Spanish",
-      icon: <Globe className="h-6 w-6 text-yellow-500" />,
-      description: "Basic knowledge of Spanish.",
-      level: 20,
-    },
-    {
-      name: "Japanese",
-      icon: <Globe className="h-6 w-6 text-red-400" />,
-      description: "Basic knowledge of Japanese.",
-      level: 50,
-    },
-  ];
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.3,
-      },
-    },
-  };
+  // Extrai e transforma os dados de skills do content
+  const programmingSkills: Skill[] = content.skills.programmingSkills
+    ? parseSkills(content.skills.programmingSkills)
+    : [];
+  const toolsSkills: Skill[] = content.skills.toolsSkills
+    ? parseSkills(content.skills.toolsSkills)
+    : [];
+  const languageSkills: Skill[] = content.skills.languageSkills
+    ? parseSkills(content.skills.languageSkills)
+    : [];
 
   return (
-    <section id="skills" className="py-16 sm:py-24 bg-[#050e1b] relative">
+    <section id="skills" className="py-16 sm:py-24 bg-background relative">
       {/* Decorative elements */}
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 rounded-full filter blur-xl opacity-40"></div>
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-blue-500/5 rounded-full filter blur-xl opacity-40"></div>
@@ -281,13 +251,7 @@ export default function Skills() {
           </p>
         </motion.div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10"
-          variants={container}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-        >
+        <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10">
           <SkillCategory
             skills={programmingSkills}
             title={content.skills.skillCategories.programming}

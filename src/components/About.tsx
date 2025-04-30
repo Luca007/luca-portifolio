@@ -5,11 +5,17 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Mail, Phone, User, Briefcase, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, Dispatch, SetStateAction } from "react";
 import ResumeDownload from "./ResumeDownload";
 import { imageConfig } from "@/lib/utils";
 
-const ProfilePhoto = ({ isPhotoHovered, setIsPhotoHovered }) => (
+// --- ProfilePhoto Component ---
+interface ProfilePhotoProps {
+  isPhotoHovered: boolean;
+  setIsPhotoHovered: Dispatch<SetStateAction<boolean>>;
+}
+
+const ProfilePhoto: React.FC<ProfilePhotoProps> = ({ isPhotoHovered, setIsPhotoHovered }) => (
   <div
     className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full overflow-hidden border-4 border-primary/20 shadow-xl"
     onMouseEnter={() => setIsPhotoHovered(true)}
@@ -55,7 +61,15 @@ const ProfilePhoto = ({ isPhotoHovered, setIsPhotoHovered }) => (
   </div>
 );
 
-const JobCard = ({ jobTitle, company, jobDescription, period }) => (
+// --- JobCard Component ---
+interface JobCardProps {
+  jobTitle: string;
+  company: string;
+  jobDescription: string;
+  period: string;
+}
+
+const JobCard: React.FC<JobCardProps> = ({ jobTitle, company, jobDescription, period }) => (
   <Card className="bg-gradient-to-br from-background to-muted/10 border border-border/30 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 transition-all duration-300 h-full">
     <CardContent className="p-4 sm:p-6">
       <div className="flex items-center mb-3 sm:mb-4">
@@ -78,10 +92,21 @@ const JobCard = ({ jobTitle, company, jobDescription, period }) => (
   </Card>
 );
 
-const ContactInfoCard = ({ locationLabel, location, emailLabel, email, phoneLabel, phone }) => (
+// --- ContactInfoCard Component ---
+interface ContactInfoCardProps {
+  locationLabel: string;
+  location: string;
+  emailLabel: string;
+  email: string;
+  phoneLabel: string;
+  phone: string;
+}
+
+const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ locationLabel, location, emailLabel, email, phoneLabel, phone }) => (
   <Card className="bg-gradient-to-br from-background to-muted/10 border border-border/30 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 transition-all duration-300 h-full">
     <CardContent className="p-4 sm:p-6">
       <div className="flex flex-col space-y-3 sm:space-y-4">
+        {/* Location */}
         <motion.div
           className="flex items-center"
           whileHover={{ x: 5 }}
@@ -96,6 +121,7 @@ const ContactInfoCard = ({ locationLabel, location, emailLabel, email, phoneLabe
           </div>
         </motion.div>
 
+        {/* Email */}
         <motion.div
           className="flex items-center"
           whileHover={{ x: 5 }}
@@ -115,6 +141,7 @@ const ContactInfoCard = ({ locationLabel, location, emailLabel, email, phoneLabe
           </div>
         </motion.div>
 
+        {/* Phone */}
         <motion.div
           className="flex items-center"
           whileHover={{ x: 5 }}
@@ -138,6 +165,7 @@ const ContactInfoCard = ({ locationLabel, location, emailLabel, email, phoneLabe
   </Card>
 );
 
+// --- Main About Component ---
 export default function About() {
   const { content } = useLanguage();
   const [isPhotoHovered, setIsPhotoHovered] = useState(false);
@@ -162,9 +190,9 @@ export default function About() {
     }
   };
 
-  const paragraphs = content.about.paragraphs;
+  const paragraphs = content.about.paragraphs || []; // Ensure paragraphs is an array
 
-  const highlightWords = (text: string) => {
+  const highlightWords = (text: string): JSX.Element => {
     // Highlight keywords by wrapping them in spans with gradient text
     const keywords = ['full-stack', 'frontend', 'backend', 'software engineer', 'developer', 'technology'];
     let highlightedText = text;
@@ -178,19 +206,7 @@ export default function About() {
   };
 
   return (
-    <section id="about" className="py-16 sm:py-24 bg-[#050e1b] relative">
-      {/* Decorative elements - fixed to avoid black borders */}
-      <div className="absolute -top-12 inset-x-0 h-24 overflow-hidden">
-        <svg
-          viewBox="0 0 1200 120"
-          className="absolute bottom-0 fill-[#050e1b] w-full"
-          preserveAspectRatio="none"
-          style={{ height: '50px' }}
-        >
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-        </svg>
-      </div>
-
+    <section id="about" className="py-24 bg-background relative overflow-hidden">
       <div className="container relative z-10 px-4 sm:px-6">
         <motion.div
           className="flex flex-col md:flex-row gap-8 md:gap-12 items-center"
@@ -199,6 +215,7 @@ export default function About() {
           viewport={{ once: true }}
           variants={staggerContainer}
         >
+          {/* Profile Photo */}
           <motion.div
             className="w-full md:w-1/3 flex justify-center"
             variants={fadeIn}
@@ -206,10 +223,12 @@ export default function About() {
             <ProfilePhoto isPhotoHovered={isPhotoHovered} setIsPhotoHovered={setIsPhotoHovered} />
           </motion.div>
 
+          {/* Text Content */}
           <motion.div
             className="w-full md:w-2/3"
             variants={fadeIn}
           >
+            {/* Title */}
             <motion.h2
               className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center"
               initial={{ opacity: 0, x: -20 }}
@@ -224,8 +243,9 @@ export default function About() {
               <span className="h-[1px] w-full sm:w-auto sm:flex-grow bg-gradient-to-r from-primary/50 to-transparent"></span>
             </motion.h2>
 
+            {/* Paragraphs */}
             <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-              {paragraphs.map((paragraph, index) => (
+              {paragraphs.map((paragraph: string, index: number) => ( // Add types
                 <motion.div
                   key={index}
                   className="text-sm sm:text-base md:text-lg leading-relaxed text-muted-foreground"
@@ -239,6 +259,7 @@ export default function About() {
               ))}
             </div>
 
+            {/* Cards */}
             <motion.div
               className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-6 sm:mb-8"
               variants={staggerContainer}
@@ -248,25 +269,26 @@ export default function About() {
             >
               <motion.div variants={fadeIn}>
                 <JobCard
-                  jobTitle={content.about.jobTitle}
-                  company={content.about.company}
-                  jobDescription={content.about.jobDescription}
-                  period={content.about.period}
+                  jobTitle={content.about.jobTitle || ""} // Provide defaults
+                  company={content.about.company || ""}
+                  jobDescription={content.about.jobDescription || ""}
+                  period={content.about.period || ""}
                 />
               </motion.div>
 
               <motion.div variants={fadeIn}>
                 <ContactInfoCard
-                  locationLabel={content.about.locationLabel}
-                  location={content.about.location}
-                  emailLabel={content.about.emailLabel}
+                  locationLabel={content.about.locationLabel || ""} // Provide defaults
+                  location={content.about.location || ""}
+                  emailLabel={content.about.emailLabel || ""}
                   email="luca.clerot@gmail.com"
-                  phoneLabel={content.about.phoneLabel}
+                  phoneLabel={content.about.phoneLabel || ""}
                   phone="(61) 99916-6442"
                 />
               </motion.div>
             </motion.div>
 
+            {/* Resume Download */}
             <motion.div
               className="flex justify-center sm:justify-start"
               initial={{ opacity: 0, y: 20 }}

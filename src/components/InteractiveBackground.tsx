@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "next-themes"; // Import useTheme
 
 interface Particle {
   x: number;
@@ -19,8 +20,131 @@ interface Particle {
   creationTime: number;
 }
 
+// --- Animation Helper Functions ---
+
+// Modificação da função getCombinedAlpha para incluir efeito de twinkle
+function getCombinedAlpha(
+  currentTime: number,
+  fadeStartPoint: number,
+  lifetimeLimit: number,
+  p: Particle
+): number {
+  const particleAge = currentTime - p.creationTime;
+  const lifeFactor = p.life / p.maxLife;
+  let ageFactor = 1;
+  if (particleAge > fadeStartPoint) {
+    const fadeProgress = (particleAge - fadeStartPoint) / (lifetimeLimit - fadeStartPoint);
+    ageFactor = 1 - fadeProgress * fadeProgress;
+  }
+  // Efeito de twinkle: oscila entre 0.8 e 1.0
+  const twinkle = 0.9 + 0.1 * Math.sin(currentTime / 300 + p.creationTime);
+  return lifeFactor * ageFactor * twinkle;
+}
+
+// Modificação de drawParticle para animar o tamanho (pulsar) e intensificar o glow
+const drawParticle = (
+  ctx: CanvasRenderingContext2D,
+  p: Particle,
+  currentTime: number,
+  fadeStartPoint: number,
+  lifetimeLimit: number
+) => {
+  const combinedAlpha = getCombinedAlpha(currentTime, fadeStartPoint, lifetimeLimit, p);
+  if (combinedAlpha < 0.05) return; // Ignora partículas quase invisíveis
+
+  // Animação de pulsação: varia o tamanho com base em uma função seno
+  const pulsateFactor = 1 + 0.1 * Math.sin(currentTime / 400 + p.creationTime);
+  const particleSize = p.size * pulsateFactor;
+
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, particleSize, 0, Math.PI * 2);
+  ctx.fillStyle = `hsla(${p.hue}, 91%, 65%, ${p.alpha * combinedAlpha})`;
+  ctx.fill();
+
+  // Glow animado e intensificado para partículas maiores e brilhantes
+  if (particleSize > 1.5 && combinedAlpha > 0.4) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, particleSize * (1 + p.glow * 0.6), 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${p.hue}, 95%, 70%, ${combinedAlpha * 0.1})`;
+    ctx.fill();
+  }
+};
+
+// Updated drawConnections using getCombinedAlpha and fixed loop condition
+const drawConnections = (
+  ctx: CanvasRenderingContext2D,
+  particlesToProcess: Particle[],
+  currentIndex: number,
+  connectionDistSquared: number,
+  connectionDistance: number,
+  currentTime: number,
+  fadeStartPoint: number,
+  lifetimeLimit: number
+) => {
+  const p = particlesToProcess[currentIndex];
+  const combinedAlpha = getCombinedAlpha(currentTime, fadeStartPoint, lifetimeLimit, p);
+  if (combinedAlpha < 0.3) return; // Skip if too faint
+
+  // Limit connections checked per particle
+  for (let j = currentIndex + 1; j < particlesToProcess.length && j < currentIndex + 8; j++) {
+    const p2 = particlesToProcess[j];
+    if (p2.life <= 0) continue;
+
+    const dx = p.x - p2.x;
+    const dy = p.y - p2.y;
+    const distSquared = dx * dx + dy * dy;
+
+    if (distSquared < connectionDistSquared) {
+      const distance = Math.sqrt(distSquared);
+      const opacityFactor = 0.05 * combinedAlpha * (1 - distance / connectionDistance);
+      if (opacityFactor > 0.02) {
+        ctx.beginPath();
+        ctx.strokeStyle = `hsla(${p.hue}, 91%, 70%, ${opacityFactor})`;
+        ctx.lineWidth = 0.2;
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+      break; // Only one connection per particle
+    }
+  }
+};
+
+// Add helper updateParticle function
+const updateParticle = (
+  p: Particle,
+  currentTime: number,
+  fadeStartPoint: number,
+  lifetimeLimit: number,
+  mousePos: { x: number; y: number },
+  isMouseInside: boolean,
+  isClicked: boolean,
+  globalMouseForceX: number,
+  globalMouseForceY: number,
+  canvasWidth: number,
+  canvasHeight: number
+): Particle | null => {
+  // Decrement life based on elapsed time
+  const age = currentTime - p.creationTime;
+  p.life = p.maxLife - age;
+  // Update particle position with its velocity and global mouse influence
+  p.x += p.vx + globalMouseForceX;
+  p.y += p.vy + globalMouseForceY;
+  // Update hue progressively
+  p.hue = (p.hue + p.hueSpeed) % 360;
+  // Wrap-around if particle goes beyond canvas boundaries
+  if (p.x < 0) p.x = canvasWidth;
+  if (p.x > canvasWidth) p.x = 0;
+  if (p.y < 0) p.y = canvasHeight;
+  if (p.y > canvasHeight) p.y = 0;
+  // Return null if particle expired
+  return p.life > 0 ? p : null;
+};
+
+// --- Main Component ---
 export default function InteractiveBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { theme, systemTheme, resolvedTheme } = useTheme(); // Get theme info
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isMouseInside, setIsMouseInside] = useState(false);
@@ -253,26 +377,37 @@ export default function InteractiveBackground() {
     if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true }); // Use desynchronized for better performance
+    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     if (!ctx) return;
+
+    // Get the computed background color based on the current theme
+    const computedStyle = getComputedStyle(document.documentElement);
+    const backgroundColor = computedStyle.getPropertyValue('--background').trim(); // e.g., "0 0% 100%"
+    // Convert HSL string from CSS variable to a usable color string (e.g., "hsl(0 0% 100%)")
+    // Or use a simpler approach if your variables are direct color values
+    const canvasBackgroundColor = `hsl(${backgroundColor})`; // Assumes variables are HSL values like "0 0% 100%"
+    const canvasClearColor = resolvedTheme === 'dark' ? 'rgba(5, 14, 27, 0.08)' : 'rgba(255, 255, 255, 0.08)'; // Adjust clear color based on theme
 
     // For low-end devices, use a minimal animation technique or a static background
     if (isLowPerfDevice && window.innerWidth < 768) {
-      // For very low-performance devices on small screens, just draw a simple gradient
-      ctx.fillStyle = '#050e1b';
+      // Fill with the current theme's background color
+      ctx.fillStyle = canvasBackgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Add a simple gradient effect instead of particles
+      // Add a simple gradient effect (adjust colors based on theme if desired)
+      const gradientCenterColor = resolvedTheme === 'dark' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.05)';
       const gradient = ctx.createRadialGradient(
-        canvas.width/2, canvas.height/2, 10,
-        canvas.width/2, canvas.height/2, canvas.width/2
+        canvas.width / 2, canvas.height / 2, 10,
+        canvas.width / 2, canvas.height / 2, canvas.width / 2
       );
-      gradient.addColorStop(0, 'rgba(59, 130, 246, 0.15)');
-      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      gradient.addColorStop(0, gradientCenterColor);
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)'); // Keep outer transparent
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw a few fixed stars
+      // Draw a few fixed stars (adjust colors based on theme if desired)
+      const starColorBase = resolvedTheme === 'dark' ? 220 : 220; // Keep blueish for both?
+      const starLightness = resolvedTheme === 'dark' ? 70 : 50;
       for (let i = 0; i < 30; i++) {
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height;
@@ -280,23 +415,21 @@ export default function InteractiveBackground() {
 
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${220 + Math.random() * 30}, 80%, 70%, ${Math.random() * 0.6 + 0.2})`;
+        ctx.fillStyle = `hsla(${starColorBase + Math.random() * 30}, 80%, ${starLightness}%, ${Math.random() * 0.6 + 0.2})`;
         ctx.fill();
       }
 
-      return;
+      return; // Stop animation loop for this simple case
     }
 
     const targetFPS = perfSettings.targetFPS;
     const frameInterval = 1000 / targetFPS;
     const framesToSkip = perfSettings.skipFrames;
-
-    // Pre-compute several constants to avoid recalculations in the animation loop
     const fadeStartPoint = particleLifetimeLimit.current * 0.3;
     const connectionDistSquared = perfSettings.connectionDistance * perfSettings.connectionDistance;
 
     const draw = () => {
-      if (!canvas) return;
+      if (!canvasRef.current || !ctx) return; // Ensure canvas and ctx exist
 
       const currentTime = performance.now();
       const deltaTime = currentTime - lastFrameTime.current;
@@ -317,145 +450,68 @@ export default function InteractiveBackground() {
 
       lastFrameTime.current = currentTime;
 
-      // Clear with composite operation - faster fading
+      // Clear canvas
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = 'rgba(0,0,0,0.08)'; // Reduced further from 0.12 to 0.08 for better visibility
+      ctx.fillStyle = canvasClearColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'source-over';
 
-      // Limit the particles we process
+      // Limit particles processed
       const particleLimit = perfSettings.drawLimit;
-      const particlesToProcess = Math.min(particles.current.length, particleLimit);
+      const currentParticles = particles.current; // Cache current particles
+      const particlesToProcessCount = Math.min(currentParticles.length, particleLimit);
       const newParticles: Particle[] = [];
 
       // Simplified global mouse influence
-      const mouseInfluenceStrength = 0.01; // Further reduced
+      const mouseInfluenceStrength = 0.01;
       const globalMouseForceX = mouseInfluenceRef.current.x * mouseInfluenceStrength;
       const globalMouseForceY = mouseInfluenceRef.current.y * mouseInfluenceStrength;
 
-      // Process particles in batch for better performance
-      for (let i = 0; i < particlesToProcess; i++) {
-        const p = particles.current[i];
-
-        // Age-based removal
-        const particleAge = currentTime - p.creationTime;
-        if (particleAge > particleLifetimeLimit.current) continue;
-        if (p.life <= 0) continue;
-
-        // Update particle
-        p.life--;
-        p.hue = (p.hue + p.hueSpeed) % 360;
-
-        // Calculate alpha factors
-        const lifeFactor = p.life / p.maxLife;
-        let ageFactor = 1;
-        if (particleAge > fadeStartPoint) {
-          const fadeProgress = (particleAge - fadeStartPoint) / (particleLifetimeLimit.current - fadeStartPoint);
-          ageFactor = 1 - (fadeProgress * fadeProgress);
+      // Process and Update Particles
+      for (let i = 0; i < particlesToProcessCount; i++) {
+        const updatedP = updateParticle(
+          currentParticles[i], currentTime, fadeStartPoint, particleLifetimeLimit.current,
+          mousePosition, isMouseInside, isClicked, globalMouseForceX, globalMouseForceY,
+          canvas.width, canvas.height
+        );
+        if (updatedP) {
+          newParticles.push(updatedP);
         }
-        const combinedAlpha = lifeFactor * ageFactor;
-
-        // Skip nearly invisible particles
-        if (combinedAlpha < 0.05) continue;
-
-        // Very simplified drawing - just the particle core for most particles
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${p.hue}, 91%, 65%, ${p.alpha * combinedAlpha})`;
-        ctx.fill();
-
-        // Only larger particles get glow effects - and only 1 in 4 particles (decreased from 1 in 3)
-        if (p.size > 1.8 && combinedAlpha > 0.4 && i % 4 === 0) {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * (1 + p.glow * 0.4), 0, Math.PI * 2); // Reduced glow size multiplier
-          ctx.fillStyle = `hsla(${p.hue}, 95%, 70%, ${combinedAlpha * 0.07})`; // Reduced opacity
-          ctx.fill();
-        }
-
-        // Draw connections only for a small subset of particles (1 in 6) - reduced from 1 in 4
-        if (combinedAlpha > 0.3 && i % 6 === 0) {
-          // Limit to just 1 connection per particle for better performance
-          for (let j = i + 1; j < particlesToProcess && j < i + 8; j++) {
-            const p2 = particles.current[j];
-            if (p2.life <= 0) continue;
-
-            const dx = p.x - p2.x;
-            const dy = p.y - p2.y;
-            const distSquared = dx * dx + dy * dy;
-
-            if (distSquared < connectionDistSquared) {
-              const distance = Math.sqrt(distSquared);
-              const opacityFactor = 0.05 * combinedAlpha * (1 - distance / perfSettings.connectionDistance);
-
-              if (opacityFactor > 0.02) {
-                ctx.beginPath();
-                ctx.strokeStyle = `hsla(${p.hue}, 91%, 70%, ${opacityFactor})`;
-                ctx.lineWidth = 0.2; // Thinner lines
-                ctx.moveTo(p.x, p.y);
-                ctx.lineTo(p2.x, p2.y);
-                ctx.stroke();
-              }
-              break; // Just one connection per particle
-            }
-          }
-        }
-
-        // Simplified mouse interaction - reduced influence
-        if (isMouseInside) {
-          const dx = p.x - mousePosition.x;
-          const dy = p.y - mousePosition.y;
-          const distSquared = dx * dx + dy * dy;
-          const maxInteractDistSquared = 120 * 120; // Further reduced interaction radius from 150 to 120
-
-          if (distSquared < maxInteractDistSquared) {
-            const distance = Math.sqrt(distSquared);
-            const force = (120 - distance) / (isClicked ? 600 : 800); // Further reduced force
-            p.vx += dx * force;
-            p.vy += dy * force;
-          }
-        }
-
-        // Simplified motion updates with more damping
-        p.vx += globalMouseForceX * (1 - p.size / 3) * 0.8; // Reduced force by 20%
-        p.vy += globalMouseForceY * (1 - p.size / 3) * 0.8; // Reduced force by 20%
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.94; // Increased friction from 0.96 to 0.94
-        p.vy *= 0.94; // Increased friction from 0.96 to 0.94
-
-        // Simple boundary check
-        if (p.x < 0 || p.x > canvas.width) {
-          p.vx *= -1;
-          p.x = p.x < 0 ? 0 : canvas.width;
-        }
-        if (p.y < 0 || p.y > canvas.height) {
-          p.vy *= -1;
-          p.y = p.y < 0 ? 0 : canvas.height;
-        }
-
-        newParticles.push(p);
       }
+      particles.current = newParticles; // Update particle array after processing all
 
-      particles.current = newParticles;
+      // Draw Particles and Connections
+      const particlesToDraw = particles.current; // Use the updated array for drawing
+      const particlesToDrawCount = Math.min(particlesToDraw.length, particleLimit);
+
+      for (let i = 0; i < particlesToDrawCount; i++) {
+        drawParticle(ctx, particlesToDraw[i], currentTime, fadeStartPoint, particleLifetimeLimit.current);
+        // Draw connections less frequently
+        if (i % 6 === 0) {
+          drawConnections(
+            ctx, particlesToDraw, i, connectionDistSquared, perfSettings.connectionDistance,
+            currentTime, fadeStartPoint, particleLifetimeLimit.current
+          );
+        }
+      }
 
       // Add new particles less frequently
       if (
-        particles.current.length < maxParticlesOnScreen.current * 0.6 && // Only fill to 60%, reduced from 70%
-        Math.random() < 0.01 && // Lower probability, reduced from 0.015
-        currentTime - lastParticleCreationTime.current > particleCreationThrottle.current * 4 // Increased throttle
+        particles.current.length < maxParticlesOnScreen.current * 0.7 && // Permite até 70% do limite
+        Math.random() < 0.02 && // Probabilidade um pouco maior para criar novas partículas
+        currentTime - lastParticleCreationTime.current > particleCreationThrottle.current * 2
       ) {
         const hueOffset = Math.random() * 40 - 20;
         const size = Math.random() * 2 + 0.5;
-        const glow = Math.random() * 0.5 + 0.1;
-
+        const glow = Math.random() * 0.5 + 0.2;
         particles.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
           size,
-          vx: (Math.random() - 0.5) * 0.25,
-          vy: (Math.random() - 0.5) * 0.25,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
           color: getParticleColor(hueOffset),
-          alpha: Math.random() * 0.4 + 0.1,
+          alpha: Math.random() * 0.5 + 0.2,
           life: Math.random() * 70 + 150,
           maxLife: Math.random() * 70 + 150,
           hue: (globalHue.current + hueOffset) % 360,
@@ -463,7 +519,6 @@ export default function InteractiveBackground() {
           glow,
           creationTime: currentTime
         });
-
         lastParticleCreationTime.current = currentTime;
       }
 
@@ -479,7 +534,8 @@ export default function InteractiveBackground() {
         cancelAnimationFrame(animationFrameId.current);
       }
     };
-  }, [dimensions, mousePosition, isMouseInside, isClicked, getParticleColor, enforceParticleLimit, perfSettings, isLowPerfDevice]);
+    // Add resolvedTheme as a dependency to re-run effect when theme changes
+  }, [dimensions, mousePosition, isMouseInside, isClicked, getParticleColor, enforceParticleLimit, perfSettings, isLowPerfDevice, resolvedTheme]); // Add ctx to dependencies if it changes
 
   // Mouse interaction with more aggressive throttling
   useEffect(() => {
@@ -578,7 +634,8 @@ export default function InteractiveBackground() {
   }, [createExplosion]);
 
   return (
-    <div className="fixed inset-0 -z-10 pointer-events-none bg-[#050e1b]">
+    // Use bg-background to apply the theme's background color
+    <div className="fixed inset-0 -z-10 pointer-events-none bg-background">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
