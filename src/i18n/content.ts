@@ -7,6 +7,13 @@ export interface Project {
   imageUrl: string;
 }
 
+export interface Certificate {
+  title: string;
+  issuer?: string;
+  link?: string;
+  date?: string; // Optional date if needed
+}
+
 export interface Content {
   navigation: {
     home: string;
@@ -33,10 +40,10 @@ export interface Content {
     company: string;
     jobDescription: string;
     period: string;
-    locationLabel: string;
-    location: string;
-    emailLabel: string;
-    phoneLabel: string;
+    locationLabel: string; // Already exists, used by pdfGenerator for left col
+    location: string;     // Already exists
+    emailLabel: string;   // Already exists
+    phoneLabel: string;   // Already exists
   };
   skills: {
     title: string;
@@ -97,6 +104,10 @@ export interface Content {
     viewAll: string;
     items: Project[];
   };
+  certificates?: { // Added for consistency if you have a dedicated certificates page/section
+    title?: string; // Optional title for a dedicated certificates page/section
+    items: Certificate[];
+  };
   contact: {
     title: string;
     description: string;
@@ -127,6 +138,7 @@ export interface Content {
       experienceTitle: string;
       educationTitle: string;
       projectsTitle: string;
+      certificatesTitle?: string; // Added: Title for certificates section in PDF
       referencesTitle: string;
       referencesAvailable: string;
       dateGenerated: string;
@@ -138,8 +150,34 @@ export interface Content {
         email: string;
         phone: string;
         location: string;
+        github?: string; // Added: GitHub profile URL
+      };
+      contactInfo: { // Added: Structure for contact section in PDF
+        title: string;
+        phoneLabel: string;
+        emailLabel: string;
+        locationLabel: string;
+        githubLabel?: string; // Added: Label for GitHub link in PDF
+      };
+      certificateLinkText?: string; // Added: Text for certificate links (e.g., "Online Certificate")
+      projectLinkViewText?: string; // Added
+      projectLinkGithubText?: string; // Added
+      proficiencyLevels?: { // Added
+        expert: string;
+        advanced: string;
+        intermediate: string;
+        basic: string;
+        beginner: string;
       };
     };
+  };
+  services?: {
+    title: string;
+    description: string;
+  };
+  testimonials?: {
+    title: string;
+    description: string;
   };
 }
 
@@ -370,6 +408,22 @@ export const EN_CONTENT: Content = {
       }
     ]
   },
+  certificates: { // Example data for certificates
+    items: [
+      {
+        title: "Advanced JavaScript",
+        issuer: "Online University",
+        link: "http://example.com/cert/js",
+        date: "2023"
+      },
+      {
+        title: "Cloud Fundamentals",
+        issuer: "Tech Platform",
+        link: "http://example.com/cert/cloud",
+        date: "2024"
+      }
+    ]
+  },
   contact: {
     title: "Contact",
     description: "Let's work together",
@@ -400,6 +454,7 @@ export const EN_CONTENT: Content = {
       experienceTitle: "Work Experience",
       educationTitle: "Education",
       projectsTitle: "Selected Projects",
+      certificatesTitle: "Certificates", // Added
       referencesTitle: "References",
       referencesAvailable: "References available upon request.",
       dateGenerated: "Generated on:",
@@ -410,7 +465,25 @@ export const EN_CONTENT: Content = {
         title: "Full Stack Developer",
         email: "luca.clerot@gmail.com",
         phone: "+55 61 98XXX-XXXX",
-        location: "Brasília, DF, Brazil"
+        location: "Brasília, DF, Brazil",
+        github: "https://github.com/Luca007" // Added
+      },
+      contactInfo: { // Added
+        title: "Contact",
+        phoneLabel: "Phone:",
+        emailLabel: "Email:",
+        locationLabel: "Location:",
+        githubLabel: "GitHub Profile"
+      },
+      certificateLinkText: "View Certificate", // Added
+      projectLinkViewText: "View Project", // Added
+      projectLinkGithubText: "View on GitHub", // Added
+      proficiencyLevels: { // Added
+        expert: "Expert",
+        advanced: "Advanced",
+        intermediate: "Intermediate",
+        basic: "Basic",
+        beginner: "Beginner"
       }
     }
   }
@@ -643,6 +716,22 @@ export const PT_CONTENT: Content = {
       }
     ]
   },
+  certificates: { // Example data for certificates
+    items: [
+      {
+        title: "JavaScript Avançado",
+        issuer: "Universidade Online",
+        link: "http://example.com/cert/js-pt",
+        date: "2023"
+      },
+      {
+        title: "Fundamentos da Nuvem",
+        issuer: "Plataforma de Tecnologia",
+        link: "http://example.com/cert/cloud-pt",
+        date: "2024"
+      }
+    ]
+  },
   contact: {
     title: "Contato",
     description: "Vamos trabalhar juntos",
@@ -673,6 +762,7 @@ export const PT_CONTENT: Content = {
       experienceTitle: "Experiência Profissional",
       educationTitle: "Formação Acadêmica",
       projectsTitle: "Projetos Selecionados",
+      certificatesTitle: "Certificados", // Added
       referencesTitle: "Referências",
       referencesAvailable: "Referências disponíveis mediante solicitação.",
       dateGenerated: "Gerado em:",
@@ -683,7 +773,25 @@ export const PT_CONTENT: Content = {
         title: "Desenvolvedor Full Stack",
         email: "luca.clerot@gmail.com",
         phone: "+55 61 98XXX-XXXX",
-        location: "Brasília, DF, Brasil"
+        location: "Brasília, DF, Brasil",
+        github: "https://github.com/Luca007" // Added
+      },
+      contactInfo: { // Added
+        title: "Contato",
+        phoneLabel: "Celular:",
+        emailLabel: "E-mail:",
+        locationLabel: "Localização:",
+        githubLabel: "Perfil GitHub"
+      },
+      certificateLinkText: "Ver Certificado", // Added
+      projectLinkViewText: "Ver Projeto", // Added
+      projectLinkGithubText: "Ver no GitHub", // Added
+      proficiencyLevels: { // Added
+        expert: "Fluente/Especialista",
+        advanced: "Avançado",
+        intermediate: "Intermediário",
+        basic: "Básico",
+        beginner: "Iniciante"
       }
     }
   }
@@ -900,7 +1008,7 @@ export const ES_CONTENT: Content = {
     items: [
       {
         title: "Generador de Ejercicios",
-        description: "Una aplicación web para generar ejercicios de entrenamiento personalizados según tiempo, nivel de habilidad y edad",
+        description: "Una aplicación web para gerar exercícios de treinamento personalizados com base em tempo, nível de habilidade e idade",
         tags: ["personal", "UI/UX", "web"],
         link: "https://luca007.github.io/gerador-de-exercicios/",
         githubLink: "https://github.com/Luca007/gerador-de-exercicios",
@@ -908,11 +1016,27 @@ export const ES_CONTENT: Content = {
       },
       {
         title: "Calculadora de Resistencias",
-        description: "Herramienta interactiva para calcular valores de resistencias basadas en bandas de colores y viceversa",
+        description: "Herramienta interactiva para calcular valores de resistencias basadas en bandas de colores e viceversa",
         tags: ["personal", "herramientas", "electrónica"],
         link: "https://luca007.github.io/calculadora-de-resistores/",
         githubLink: "https://github.com/Luca007/calculadora-de-resistores",
         imageUrl: "/images/resistor-calculator.jpg"
+      }
+    ]
+  },
+  certificates: { // Example data for certificates
+    items: [
+      {
+        title: "JavaScript Avanzado",
+        issuer: "Universidad en Línea",
+        link: "http://example.com/cert/js-es",
+        date: "2023"
+      },
+      {
+        title: "Fundamentos de la Nube",
+        issuer: "Plataforma Tecnológica",
+        link: "http://example.com/cert/cloud-es",
+        date: "2024"
       }
     ]
   },
@@ -941,11 +1065,12 @@ export const ES_CONTENT: Content = {
     pdf: {
       title: "Currículum",
       subtitle: "Desarrollador Full Stack Profesional",
-      summaryTitle: "Resumen Profesional",
+      summaryTitle: "Resumen Profissional",
       skillsTitle: "Habilidades",
       experienceTitle: "Experiencia Profesional",
       educationTitle: "Formación Académica",
       projectsTitle: "Proyectos Seleccionados",
+      certificatesTitle: "Certificados", // Added
       referencesTitle: "Referencias",
       referencesAvailable: "Referencias disponibles a petición.",
       dateGenerated: "Generado el:",
@@ -956,7 +1081,25 @@ export const ES_CONTENT: Content = {
         title: "Desarrollador Full Stack",
         email: "luca.clerot@gmail.com",
         phone: "+55 61 98XXX-XXXX",
-        location: "Brasília, DF, Brasil"
+        location: "Brasília, DF, Brasil",
+        github: "https://github.com/Luca007" // Added
+      },
+      contactInfo: { // Added
+        title: "Contacto",
+        phoneLabel: "Teléfono:",
+        emailLabel: "Correo:",
+        locationLabel: "Ubicación:",
+        githubLabel: "Perfil GitHub"
+      },
+      certificateLinkText: "Ver Certificado", // Added
+      projectLinkViewText: "Ver Proyecto", // Added
+      projectLinkGithubText: "Ver en GitHub", // Added
+      proficiencyLevels: { // Added
+        expert: "Experto/Fluido",
+        advanced: "Avanzado",
+        intermediate: "Intermedio",
+        basic: "Básico",
+        beginner: "Principiante"
       }
     }
   }
