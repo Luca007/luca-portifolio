@@ -1,0 +1,117 @@
+{
+    "schemas": [
+      [
+        {
+          "type": "text",
+          "name": "pdfName",
+          "position": { "x": 20, "y": 20 },
+          "width": 280,
+          "height": 18,
+          "style": "nameStyle",
+          "text": "{{resume.pdf.personalInfo.name}}"
+        },
+        {
+          "type": "text",
+          "name": "pdfJobTitle",
+          "position": { "x": 20, "y": 40 },
+          "width": 280,
+          "height": 12,
+          "style": "jobTitleStyle",
+          "text": "{{resume.pdf.personalInfo.title}}"
+        },
+        {
+          "type": "text",
+          "name": "contactDetails",
+          "position": { "x": 350, "y": 20 },
+          "width": 225,
+          "height": 50,
+          "style": "contactStyle",
+          "alignment": "left",
+          "text": "{{formatContactInfo}}"
+        },
+        {
+          "type": "text",
+          "name": "summarySection",
+          "position": { "x": 20, "y": 75 },
+          "width": 555,
+          "height": 70,
+          "style": "sectionBodyStyle",
+          "alignment": "left",
+          "text": "{{formatSummary}}"
+        },
+        {
+          "type": "text",
+          "name": "experienceSection",
+          "position": { "x": 20, "y": 150 },
+          "width": 555,
+          "height": 170,
+          "style": "sectionBodyStyle",
+          "alignment": "left",
+          "text": "{{formatExperience}}"
+        },
+        {
+          "type": "text",
+          "name": "skillsSection",
+          "position": { "x": 20, "y": 325 },
+          "width": 555,
+          "height": 130,
+          "style": "sectionBodyStyle",
+          "alignment": "left",
+          "text": "{{formatSkills}}"
+        },
+        {
+          "type": "text",
+          "name": "educationSection",
+          "position": { "x": 20, "y": 460 },
+          "width": 555,
+          "height": 100,
+          "style": "sectionBodyStyle",
+          "alignment": "left",
+          "text": "{{formatEducation}}"
+        },
+        {
+          "type": "text",
+          "name": "projectsSection",
+          "position": { "x": 20, "y": 565 },
+          "width": 555,
+          "height": 100,
+          "style": "sectionBodyStyle",
+          "alignment": "left",
+          "text": "{{formatProjects}}"
+        },
+        {
+          "type": "text",
+          "name": "certificatesSection",
+          "position": { "x": 20, "y": 670 },
+          "width": 555,
+          "height": 80,
+          "style": "sectionBodyStyle",
+          "alignment": "left",
+          "text": "{{formatCertificates}}"
+        },
+        {
+          "type": "text",
+          "name": "footerDateText",
+          "position": { "x": 20, "y": 780 },
+          "width": 555,
+          "height": 10,
+          "style": "footerStyle",
+          "alignment": "left",
+          "text": "{{formatDateGenerated}}"
+        }
+      ]
+    ],
+    "styles": {
+      "logoNameSmall": { "fontSize": 18, "bold": true },
+      "logoNameLarge": { "fontSize": 42, "bold": true, "margin": [0, -8, 0, 0] },
+      "logoSubtitle": { "fontSize": 10, "characterSpacing": 2, "margin": [8, 0, 0, 0] },
+      "contactLabel": { "fontSize": 10, "bold": true },
+      "contactText": { "fontSize": 9 },
+      "sectionHeader": { "fontSize": 14, "bold": true, "margin": [0, 0, 0, 8], "characterSpacing": 2 },
+      "timelineTitle": { "fontSize": 10, "bold": true, "margin": [0, 0, 0, 2] },
+      "timelineDescription": { "fontSize": 9, "margin": [0, 0, 0, 6] },
+      "paragraph": { "fontSize": 10, "lineHeight": 1.2 }
+    },
+    "defaultStyle": "{{defaultStyle}}",
+    "pageSize": "{{pageSize}}"
+  }
