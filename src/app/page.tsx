@@ -1,6 +1,5 @@
 import { Suspense, lazy } from 'react';
 import ClientBody from './ClientBody';
-import SimpleFixedNavigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import InteractiveBackground from "@/components/InteractiveBackground";
 
@@ -26,7 +25,6 @@ export default function Home() {
   return (
     <ClientBody>
       <InteractiveBackground />
-      <SimpleFixedNavigation />
       <main className="min-h-screen relative overflow-x-hidden">
         <Hero />
 

@@ -75,8 +75,8 @@ export default function SimpleFixedHeader() {
     const element = document.getElementById(id);
     if (!element) return;
 
-    const headerElement = document.getElementById("fixed-header");
-    const headerHeight = headerElement ? headerElement.offsetHeight : 60; // Dynamically get header height or fallback
+    const headerElement = document.getElementById("site-header"); // Atualizado para o ID correto
+    const headerHeight = headerElement ? headerElement.offsetHeight : 60; // Dinamicamente obtém a altura do header ou usa fallback
     const elementPosition = element.getBoundingClientRect().top + window.scrollY;
     const offsetPosition = elementPosition - headerHeight;
 
@@ -129,18 +129,14 @@ export default function SimpleFixedHeader() {
 
 
   return (
-    <header
-      id="fixed-header" // Keep ID for scroll calculation
-      className={cn(
-        "fixed top-0 left-0 right-0 w-full z-[50]", // Position fixed, full width, top, z-index
-        "py-3", // Vertical padding
-        "transition-all duration-300 ease-in-out", // Smooth transitions
-        "backdrop-blur-md", // Background blur effect
-        isScrolled
-          ? "bg-background/85 shadow-lg" // Scrolled state: more opaque background, larger shadow
-          : "bg-background/50 shadow-none" // Initial state: more transparent background, no shadow
-      )}
-    >
+    <header className={cn(
+      "w-full py-[17px] -mt-1", // Aumenta padding vertical e move para cima 4px (altura da barra de progresso)
+      "transition-all duration-300 ease-in-out",
+      "backdrop-blur-md",
+      isScrolled
+        ? "bg-background/85 shadow-lg" // Scrolled state: more opaque background, larger shadow
+        : "bg-background/50 shadow-none" // Initial state: more transparent background, no shadow
+    )}>
       <div className="container flex items-center justify-between">
         {/* Left side: Logo and Badges */}
         <div className="flex items-center gap-2">

@@ -1,4 +1,5 @@
 import "./globals.css";
+import SimpleFixedNavigation from "@/components/Navigation";
 
 import type { Metadata } from "next";
 import Providers from "@/components/Providers";
@@ -22,6 +23,7 @@ export default function RootLayout({
     // Add suppressHydrationWarning here
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <SimpleFixedNavigation /> {/* Header ‘fixed’ aqui */}
         <Suspense fallback={<div>Loading...</div>}>
           <Providers>
             <ToastProvider>

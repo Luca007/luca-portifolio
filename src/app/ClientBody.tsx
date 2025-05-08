@@ -10,17 +10,6 @@ export default function ClientBody({ children }: ClientBodyProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Remove any extension-added classes during hydration
-    const root = document.documentElement;
-
-    // Remove all classes except theme classes (for dark/light mode)
-    const classList = Array.from(root.classList);
-    classList.forEach(cls => {
-      if (!cls.startsWith('dark') && !cls.startsWith('light')) {
-        root.classList.remove(cls);
-      }
-    });
-
     setMounted(true);
   }, []);
 
@@ -32,5 +21,5 @@ export default function ClientBody({ children }: ClientBodyProps) {
     );
   }
 
-  return children;
+  return <>{children}</>;
 }
