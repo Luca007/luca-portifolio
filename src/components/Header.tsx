@@ -90,16 +90,15 @@ export default function SimpleFixedHeader() {
     setIsMobileMenuOpen(false);
   };
 
-  // Navigation items
-  const navigationItems = [
-    { name: content.navigation.home, id: "home" },
-    { name: content.navigation.about, id: "about" },
-    { name: content.navigation.skills, id: "skills" },
-    { name: content.navigation.experiences, id: "experiences" },
-    { name: content.navigation.education, id: "education" },
-    { name: content.navigation.projects, id: "projects" },
-    { name: content.navigation.contact, id: "contact" }
-  ];
+  // Navigation items - Atualizado para usar traduções dinâmicas
+  const navigationKeys = Object.keys(content.navigation) as Array<keyof typeof content.navigation>;
+  
+  const navigationItems = navigationKeys
+    .filter(key => key !== 'blog' && key !== 'language') // Remove 'blog' e 'language' da navegação principal
+    .map(key => ({
+      id: key,
+      name: content.navigation[key]
+    }));
 
   // Handle logo click
   const handleLogoClick = (e: React.MouseEvent) => {
@@ -130,12 +129,11 @@ export default function SimpleFixedHeader() {
 
   return (
     <header className={cn(
-      "w-full py-[17px] -mt-1", // Aumenta padding vertical e move para cima 4px (altura da barra de progresso)
+      "w-full py-[17px] -mt-1",
       "transition-all duration-300 ease-in-out",
-      "backdrop-blur-md",
       isScrolled
-        ? "bg-background/85 shadow-lg" // Scrolled state: more opaque background, larger shadow
-        : "bg-background/50 shadow-none" // Initial state: more transparent background, no shadow
+        ? "bg-background/85 shadow-lg"
+        : "bg-background/50 shadow-none"
     )}>
       <div className="container flex items-center justify-between">
         {/* Left side: Logo and Badges */}
@@ -213,7 +211,7 @@ export default function SimpleFixedHeader() {
               )}
               aria-current={activeSection === item.id ? "page" : undefined}
             >
-              {item.name}
+              {item.name} {/* Nome traduzido */}
               {/* Underline effect for active item */}
               <span className={cn(
                   "absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-4/5",
@@ -222,8 +220,8 @@ export default function SimpleFixedHeader() {
             </button>
           ))}
           <div className="flex items-center pl-2 space-x-1 border-l border-border/20 ml-2"> {/* Separator */}
-            <ThemeSwitcher />
-            <LanguageSwitcher />
+            <ThemeSwitcher /> {/* Se o dropdown estiver com problemas, verifique seu z-index */}
+            <LanguageSwitcher /> {/* Se o dropdown estiver com problemas, verifique seu z-index */}
             {user && (
               <TooltipProvider delayDuration={100}>
                 <Tooltip>
@@ -248,8 +246,8 @@ export default function SimpleFixedHeader() {
 
         {/* Mobile navigation Trigger & Controls */}
         <div className="md:hidden flex items-center space-x-1">
-          <ThemeSwitcher />
-          <LanguageSwitcher />
+          <ThemeSwitcher /> {/* Se o dropdown estiver com problemas, verifique seu z-index */}
+          <LanguageSwitcher /> {/* Se o dropdown estiver com problemas, verifique seu z-index */}
           {user && (
              <TooltipProvider delayDuration={100}>
                 <Tooltip>
@@ -297,7 +295,7 @@ export default function SimpleFixedHeader() {
                 {navigationItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => scrollToSection(item.id)} // Already closes menu
+                    onClick={() => scrollToSection(item.id)}
                     className={cn(
                       "w-full p-3 text-left rounded-md flex items-center justify-between transition-all text-base", // Ensure full width
                       activeSection === item.id
@@ -306,7 +304,7 @@ export default function SimpleFixedHeader() {
                     )}
                     aria-current={activeSection === item.id ? "page" : undefined}
                   >
-                    <span>{item.name}</span>
+                    <span>{item.name}</span> {/* Nome traduzido */}
                     {activeSection === item.id && (
                       <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                     )}

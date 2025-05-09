@@ -23,10 +23,11 @@ export default function RootLayout({
     // Add suppressHydrationWarning here
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <SimpleFixedNavigation /> {/* Header ‘fixed’ aqui */}
+        {/* SimpleFixedNavigation foi movido para dentro de Providers */}
         <Suspense fallback={<div>Loading...</div>}>
-          <Providers>
-            <ToastProvider>
+          <Providers> {/* Providers deve conter ThemeProvider e LanguageProvider */}
+            <SimpleFixedNavigation /> {/* Header agora está dentro do contexto dos Providers */}
+            <ToastProvider> {/* Considere se ToastProvider também deve estar dentro de Providers ou se precisa de temas */}
               {children}
             </ToastProvider>
           </Providers>

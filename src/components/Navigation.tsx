@@ -13,7 +13,7 @@ export default function SimpleFixedNavigation() {
   });
 
   return (
-    <header id="site-header" className="sticky top-0 left-0 right-0 z-50">
+    <header id="site-header" className="sticky top-0 left-0 right-0 z-50 will-change-transform">
       {/* progress bar */}
       <div className="relative h-1 w-full overflow-hidden pointer-events-none z-[1]">
         <motion.div

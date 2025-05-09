@@ -9,13 +9,7 @@ interface CustomThemeProviderProps extends ThemeProviderProps {
 
 export function ThemeProvider({ children, ...props }: CustomThemeProviderProps) {
   return (
-    <NextThemesProvider 
-      attribute="class" 
-      defaultTheme="system" 
-      enableSystem 
-      disableTransitionOnChange 
-      {...props}
-    >
+    <NextThemesProvider {...props}>
       {children}
     </NextThemesProvider>
   );

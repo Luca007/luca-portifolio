@@ -38,7 +38,7 @@ export const ThemeSwitcher = () => {
   const effectiveTheme = theme === "system" ? resolvedTheme : theme;
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"

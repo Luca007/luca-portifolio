@@ -16,7 +16,7 @@ export const LanguageSwitcher = () => {
   const { currentLanguage, setLanguage } = useLanguage();
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
