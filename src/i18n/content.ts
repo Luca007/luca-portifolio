@@ -26,6 +26,8 @@ export interface Content {
     blog: string;
     language: string;
   };
+  languageSwitcher: { selectLanguagePrompt: string; toggleLabel: string }; // Added toggleLabel
+  themeSwitcher: { light: string; dark: string; system: string; toggleTheme: string }; // Added to interface
   home: {
     greeting: string;
     title: string;
@@ -53,6 +55,14 @@ export interface Content {
       tools: string;
       languages: string;
     };
+    proficiencyLabel: string;
+    proficiencyLevels: {
+      expert: string;
+      advanced: string;
+      intermediate: string;
+      basic: string;
+      beginner: string;
+    };
     programmingSkills: {
       name: string;
       icon: string;
@@ -75,6 +85,7 @@ export interface Content {
   experiences: {
     title: string;
     description: string;
+    responsibilitiesTitle: string; // Added responsibilities title
     items: {
       company: string;
       position: string;
@@ -87,6 +98,7 @@ export interface Content {
   education: {
     title: string;
     description: string;
+    coursesTitle: string; // Added courses title
     items: {
       institution: string;
       degree: string;
@@ -102,6 +114,8 @@ export interface Content {
     title: string;
     description: string;
     viewAll: string;
+    githubButton: string;
+    demoButton: string;
     items: Project[];
   };
   certificates?: { // Added for consistency if you have a dedicated certificates page/section
@@ -111,20 +125,30 @@ export interface Content {
   contact: {
     title: string;
     description: string;
+    infoTitle: string; // Card title for contact information
+    successTitle: string; // Heading after successful form submission
+    successButton: string; // Button text to reset form after success
     form: {
       name: string;
       email: string;
+      subject: string;
       message: string;
       send: string;
       sending: string;
       success: string;
       error: string;
+      namePlaceholder: string;
+      emailPlaceholder: string;
+      subjectPlaceholder: string;
+      messagePlaceholder: string;
     };
   };
   footer: {
     copyright: string;
     poweredBy: string;
     description: string;
+    navigationTitle: string;    // Title for footer navigation section
+    scrollToTopLabel: string;   // aria-label for scroll-to-top button
   };
   resume: {
     download: string;
@@ -191,8 +215,10 @@ export const EN_CONTENT: Content = {
     projects: "Projects",
     contact: "Contact",
     blog: "Blog",
-    language: "Language"
+    language: "Language",
   },
+  languageSwitcher: { selectLanguagePrompt: "Select language", toggleLabel: "Change language" },
+  themeSwitcher: { light: "Light", dark: "Dark", system: "System", toggleTheme: "Toggle theme" },
   home: {
     greeting: "Hello, I'm",
     title: "Luca",
@@ -229,6 +255,14 @@ export const EN_CONTENT: Content = {
       programming: "Programming Languages",
       tools: "Tools & Platforms",
       languages: "Languages"
+    },
+    proficiencyLabel: "Proficiency",
+    proficiencyLevels: {
+      expert: "Expert",
+      advanced: "Advanced",
+      intermediate: "Intermediate",
+      basic: "Basic",
+      beginner: "Beginner"
     },
     programmingSkills: [
       {
@@ -342,6 +376,7 @@ export const EN_CONTENT: Content = {
   experiences: {
     title: "Experience",
     description: "My professional journey",
+    responsibilitiesTitle: "Responsibilities:", // Added responsibilities title
     items: [
       {
         company: "ITI",
@@ -360,6 +395,7 @@ export const EN_CONTENT: Content = {
   education: {
     title: "Education",
     description: "My academic background",
+    coursesTitle: "Notable Courses", // Added courses title
     items: [
       {
         institution: "IESB",
@@ -389,6 +425,8 @@ export const EN_CONTENT: Content = {
     title: "Projects",
     description: "Some of my recent work",
     viewAll: "View all on GitHub",
+    githubButton: "GitHub",
+    demoButton: "Demo",
     items: [
       {
         title: "Exercise Generator",
@@ -427,20 +465,30 @@ export const EN_CONTENT: Content = {
   contact: {
     title: "Contact",
     description: "Let's work together",
+    infoTitle: "Contact Information",
+    successTitle: "Message Sent!",
+    successButton: "Send another message",
     form: {
       name: "Name",
       email: "Email",
+      subject: "Subject",
       message: "Message",
       send: "Send Message",
       sending: "Sending...",
       success: "Thank you for reaching out. I'll get back to you as soon as possible.",
-      error: "Error sending message. Please try again."
+      error: "Error sending message. Please try again.",
+      namePlaceholder: "John Doe",
+      emailPlaceholder: "email@example.com",
+      subjectPlaceholder: "How can I help you?",
+      messagePlaceholder: "Enter your message here..."
     }
   },
   footer: {
     copyright: "All rights reserved",
     poweredBy: "Powered by",
-    description: "Full-stack developer, computer engineer, and technology enthusiast with experience in web development and application design"
+    description: "Full-stack developer, computer engineer, and technology enthusiast with experience in web development and application design",
+    navigationTitle: "Navigation",
+    scrollToTopLabel: "Scroll to top",
   },
   resume: {
     download: "Download Resume",
@@ -499,8 +547,10 @@ export const PT_CONTENT: Content = {
     projects: "Projetos",
     contact: "Contato",
     blog: "Blog",
-    language: "Idioma"
+    language: "Idioma",
   },
+  languageSwitcher: { selectLanguagePrompt: "Selecionar idioma", toggleLabel: "Mudar idioma" },
+  themeSwitcher: { light: "Claro", dark: "Escuro", system: "Sistema", toggleTheme: "Alternar tema" },
   home: {
     greeting: "Olá, eu sou",
     title: "Luca",
@@ -537,6 +587,14 @@ export const PT_CONTENT: Content = {
       programming: "Programação",
       tools: "Ferramentas",
       languages: "Idiomas"
+    },
+    proficiencyLabel: "Proficiência",
+    proficiencyLevels: {
+      expert: "Especialista",
+      advanced: "Avançado",
+      intermediate: "Intermediário",
+      basic: "Básico",
+      beginner: "Iniciante"
     },
     programmingSkills: [
       {
@@ -650,6 +708,7 @@ export const PT_CONTENT: Content = {
   experiences: {
     title: "Experiência",
     description: "Minha jornada profissional",
+    responsibilitiesTitle: "Responsabilidades:", // Added responsibilities title
     items: [
       {
         company: "ITI",
@@ -668,6 +727,7 @@ export const PT_CONTENT: Content = {
   education: {
     title: "Educação",
     description: "Minha formação acadêmica",
+    coursesTitle: "Cursos Notáveis", // Added courses title
     items: [
       {
         institution: "IESB",
@@ -697,6 +757,8 @@ export const PT_CONTENT: Content = {
     title: "Projetos",
     description: "Alguns dos meus trabalhos recentes",
     viewAll: "Ver todos no GitHub",
+    githubButton: "GitHub",
+    demoButton: "Demo",
     items: [
       {
         title: "Gerador de Exercícios",
@@ -735,20 +797,30 @@ export const PT_CONTENT: Content = {
   contact: {
     title: "Contato",
     description: "Vamos trabalhar juntos",
+    infoTitle: "Informações de Contato",
+    successTitle: "Mensagem Enviada!",
+    successButton: "Enviar outra mensagem",
     form: {
       name: "Nome",
       email: "Email",
+      subject: "Assunto",
       message: "Mensagem",
       send: "Enviar Mensagem",
       sending: "Enviando...",
       success: "Obrigado pelo contato. Responderei o mais breve possível.",
-      error: "Erro ao enviar mensagem. Por favor, tente novamente."
+      error: "Erro ao enviar mensagem. Por favor, tente novamente.",
+      namePlaceholder: "Seu nome",
+      emailPlaceholder: "email@exemplo.com",
+      subjectPlaceholder: "Como posso ajudar?",
+      messagePlaceholder: "Digite sua mensagem aqui..."
     }
   },
   footer: {
     copyright: "Todos os direitos reservados",
     poweredBy: "Desenvolvido com",
-    description: "Desenvolvedor full-stack, engenheiro de computação e entusiasta de tecnologia com experiência em desenvolvimento web e design de aplicações"
+    description: "Desenvolvedor full-stack, engenheiro de computação e entusiasta de tecnologia com experiência em desenvolvimento web e design de aplicações",
+    navigationTitle: "Navegação",
+    scrollToTopLabel: "Voltar ao topo",
   },
   resume: {
     download: "Baixar Currículo",
@@ -807,8 +879,10 @@ export const ES_CONTENT: Content = {
     projects: "Proyectos",
     contact: "Contacto",
     blog: "Blog",
-    language: "Idioma"
+    language: "Idioma",
   },
+  languageSwitcher: { selectLanguagePrompt: "Seleccionar idioma", toggleLabel: "Cambiar idioma" },
+  themeSwitcher: { light: "Claro", dark: "Oscuro", system: "Sistema", toggleTheme: "Cambiar tema" },
   home: {
     greeting: "Hola, soy",
     title: "Luca",
@@ -846,6 +920,14 @@ export const ES_CONTENT: Content = {
       tools: "Herramientas",
       languages: "Idiomas"
     },
+    proficiencyLabel: "Proficiência",
+    proficiencyLevels: {
+      expert: "Experto",
+      advanced: "Avanzado",
+      intermediate: "Intermedio",
+      basic: "Básico",
+      beginner: "Principiante"
+    },
     programmingSkills: [
       {
         name: "HTML & CSS",
@@ -856,7 +938,7 @@ export const ES_CONTENT: Content = {
       {
         name: "JavaScript",
         icon: "Braces",
-        description: "Desarrollo avanzado con animaciones e integración de API.",
+        description: "Desarrollo avanzado com animações e integração de API.",
         level: 90
       },
       {
@@ -886,7 +968,7 @@ export const ES_CONTENT: Content = {
       {
         name: "Python",
         icon: "Code",
-        description: "Desarrollo de aplicaciones personales e IA con reconocimiento.",
+        description: "Desarrollo de aplicaciones personales e IA com reconhecimento.",
         level: 80
       },
       {
@@ -958,6 +1040,7 @@ export const ES_CONTENT: Content = {
   experiences: {
     title: "Experiencia",
     description: "Mi trayectoria profesional",
+    responsibilitiesTitle: "Responsabilidades:", // Added responsibilities title
     items: [
       {
         company: "ITI",
@@ -976,6 +1059,7 @@ export const ES_CONTENT: Content = {
   education: {
     title: "Educación",
     description: "Mi formación académica",
+    coursesTitle: "Cursos Destacados", // Added courses title
     items: [
       {
         institution: "IESB",
@@ -1005,6 +1089,8 @@ export const ES_CONTENT: Content = {
     title: "Proyectos",
     description: "Algunos de mis trabajos recientes",
     viewAll: "Ver todos en GitHub",
+    githubButton: "GitHub",
+    demoButton: "Demo",
     items: [
       {
         title: "Generador de Ejercicios",
@@ -1016,7 +1102,7 @@ export const ES_CONTENT: Content = {
       },
       {
         title: "Calculadora de Resistencias",
-        description: "Herramienta interactiva para calcular valores de resistencias basadas en bandas de colores e viceversa",
+        description: "Herramienta interativa para calcular valores de resistencias basadas en bandas de colores e viceversa",
         tags: ["personal", "herramientas", "electrónica"],
         link: "https://luca007.github.io/calculadora-de-resistores/",
         githubLink: "https://github.com/Luca007/calculadora-de-resistores",
@@ -1043,20 +1129,30 @@ export const ES_CONTENT: Content = {
   contact: {
     title: "Contacto",
     description: "Trabajemos juntos",
+    infoTitle: "Información de Contacto",
+    successTitle: "Mensaje Enviado!",
+    successButton: "Enviar otra mensaje",
     form: {
       name: "Nombre",
       email: "Correo",
+      subject: "Asunto",
       message: "Mensaje",
       send: "Enviar Mensaje",
       sending: "Enviando...",
       success: "¡Mensaje enviado con éxito!",
-      error: "Error al enviar el mensaje. Por favor, inténtalo de nuevo."
+      error: "Error al enviar el mensaje. Por favor, inténtalo de nuevo.",
+      namePlaceholder: "John Doe",
+      emailPlaceholder: "correo@ejemplo.com",
+      subjectPlaceholder: "¿Cómo puedo ayudar?",
+      messagePlaceholder: "Ingresa tu mensaje aquí..."
     }
   },
   footer: {
     copyright: "Todos los derechos reservados",
     poweredBy: "Desarrollado con",
-    description: "Desarrollador full-stack, ingeniero en computación y entusiasta de la tecnología con experiencia en desarrollo web y diseño de aplicaciones"
+    description: "Desarrollador full-stack, ingeniero en computación y entusiasta de la tecnología con experiencia en desarrollo web y diseño de aplicaciones",
+    navigationTitle: "Navegación",
+    scrollToTopLabel: "Ir al principio",
   },
   resume: {
     download: "Descargar Currículum",

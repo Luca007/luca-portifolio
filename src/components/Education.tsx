@@ -50,7 +50,7 @@ export default function Education() {
                     <div>
                       <h4 className="text-sm font-medium mb-3 flex items-center">
                         <Award className="h-4 w-4 mr-2 text-primary" />
-                        Notable Courses
+                        {content.education.coursesTitle}
                       </h4>
                       <div className="space-y-3">
                         {education.courses.map((course, courseIndex) => (

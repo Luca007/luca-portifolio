@@ -59,6 +59,7 @@ interface ProjectCardProps {
   setSelectedTag: Dispatch<SetStateAction<string | null>>;
 }
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, setSelectedTag }) => {
+  const { content } = useLanguage();
   const displayedTopics = project.topics.filter(
     (topic) =>
       topic.toLowerCase() !== project.language.toLowerCase() &&
@@ -160,7 +161,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, setSelectedTag }) =>
           <Link href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
             <Button variant="outline" size="sm" className="w-full gap-1 group">
               <Github className="h-4 w-4 group-hover:-translate-y-1 transition-transform" />
-              <span>GitHub</span>
+              <span>{content.projects.githubButton}</span>
             </Button>
           </Link>
 
@@ -172,7 +173,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, setSelectedTag }) =>
                 className="w-full gap-1 bg-gradient-to-r from-primary to-blue-500 hover:shadow-md hover:shadow-primary/20 group"
               >
                 <Globe className="h-4 w-4 group-hover:rotate-12 transition-transform" />
-                <span>Demo</span>
+                <span>{content.projects.demoButton}</span>
               </Button>
             </Link>
           )}
@@ -517,7 +518,7 @@ const Projects: React.FC = () => {
                         <Link href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
                           <Button variant="outline" size="sm" className="w-full gap-1 group">
                             <Github className="h-4 w-4 group-hover:-translate-y-1 transition-transform" />
-                            <span>GitHub</span>
+                            <span>{content.projects.githubButton}</span>
                           </Button>
                         </Link>
 
@@ -529,7 +530,7 @@ const Projects: React.FC = () => {
                               className="w-full gap-1 bg-gradient-to-r from-primary to-blue-500 hover:shadow-md hover:shadow-primary/20 group"
                             >
                               <Globe className="h-4 w-4 group-hover:rotate-12 transition-transform" />
-                              <span>Demo</span>
+                              <span>{content.projects.demoButton}</span>
                             </Button>
                           </Link>
                         )}

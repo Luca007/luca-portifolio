@@ -30,6 +30,7 @@ const fadeInY = (delay: number = 0, duration: number = 0.5) => ({
 // ScrollToTopButton Component
 const ScrollToTopButton = () => {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  const { content } = useLanguage();
   return (
     <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-background rounded-full p-3 border border-border/20 shadow-lg">
       <motion.button
@@ -37,7 +38,7 @@ const ScrollToTopButton = () => {
         className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-2 rounded-full hover:shadow-lg hover:shadow-primary/20"
         whileHover={hoverAnimation}
         whileTap={tapAnimation}
-        aria-label="Scroll to top"
+        aria-label={content.footer.scrollToTopLabel}
         {...fadeInY(0.2)}
       >
         <ArrowUp className="h-5 w-5" />
@@ -206,11 +207,11 @@ export default function Footer() {
             <FooterBrand description={content.footer.description} socialLinks={socialLinks} />
           </div>
           <div className="md:col-span-3">
-            <FooterNavigation title="Navigation" navLinks={navLinks} />
+            <FooterNavigation title={content.footer.navigationTitle} navLinks={navLinks} />
           </div>
           <div className="md:col-span-4">
             <FooterContactAndLanguage
-              contactTitle="Contact"
+              contactTitle={content.contact.title}
               languageTitle={content.navigation.language}
               currentLanguage={currentLanguage}
               setLanguage={setLanguage}

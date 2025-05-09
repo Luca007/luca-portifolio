@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useTheme } from "next-themes";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, Monitor, LucideIcon } from "lucide-react";
 import {
@@ -27,6 +28,7 @@ const themeOptions: ThemeOption[] = [
 
 export const ThemeSwitcher = () => {
   const { setTheme, theme, resolvedTheme } = useTheme();
+  const { content } = useLanguage();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => { setMounted(true); }, []);
@@ -44,7 +46,7 @@ export const ThemeSwitcher = () => {
           variant="ghost"
           size="sm"
           className="relative h-9 w-9 rounded-full p-0 overflow-hidden hover:bg-primary/10 focus-visible:bg-primary/10"
-          aria-label="Toggle theme"
+          aria-label={content.themeSwitcher.toggleTheme}
         >
           <motion.div
             className="absolute inset-0 opacity-0 bg-primary/10 rounded-full"
@@ -94,7 +96,7 @@ export const ThemeSwitcher = () => {
             >
               <div className="flex items-center">
                 <Icon className={`mr-2 h-4 w-4 ${option.iconClass}`} />
-                <span className="font-medium">{option.label}</span>
+                <span className="font-medium">{content.themeSwitcher[option.value]}</span>
               </div>
               {isActive && (
                 <motion.div

@@ -13,7 +13,7 @@ import { Globe } from "lucide-react";
 import { motion } from "framer-motion";
 
 export const LanguageSwitcher = () => {
-  const { currentLanguage, setLanguage } = useLanguage();
+  const { currentLanguage, setLanguage, content } = useLanguage();
 
   return (
     <DropdownMenu modal={false}>
@@ -22,7 +22,7 @@ export const LanguageSwitcher = () => {
           variant="ghost"
           size="sm"
           className="relative h-9 w-9 rounded-full p-0 overflow-hidden hover:bg-primary/10 focus-visible:bg-primary/10"
-          aria-label="Change language"
+          aria-label={content.languageSwitcher.toggleLabel}
         >
           <motion.div
             className="flex items-center justify-center"
@@ -40,7 +40,7 @@ export const LanguageSwitcher = () => {
         className="w-56 bg-background/95 backdrop-blur-sm border border-border/50"
       >
         <div className="p-2 text-xs font-medium text-muted-foreground">
-          Select language / Selecionar idioma / Seleccionar idioma
+          {content.languageSwitcher.selectLanguagePrompt}
         </div>
         {LANGUAGES.map((lang: Language) => (
           <DropdownMenuItem

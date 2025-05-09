@@ -143,19 +143,21 @@ const SkillCard: React.FC<SkillCardProps> = ({ skill, isHovered, setHoveredSkill
 );
 
 const SkillLevel: React.FC<SkillLevelProps> = ({ skill, isHovered }) => {
+  const { content } = useLanguage();
+  const levels = content.skills.proficiencyLevels;
   const levelText =
     skill.level >= 90
-      ? "Expert"
+      ? levels.expert
       : skill.level >= 80
-      ? "Advanced"
+      ? levels.advanced
       : skill.level >= 60
-      ? "Intermediate"
-      : "Basic";
+      ? levels.intermediate
+      : levels.basic;
 
   return (
     <div className="w-full mt-3">
       <div className="flex justify-between mb-1">
-        <span className="text-xs text-muted-foreground">Proficiency</span>
+        <span className="text-xs text-muted-foreground">{content.skills.proficiencyLabel}</span>
         <motion.span
           className="text-xs font-medium"
           initial={{ opacity: 0 }}
