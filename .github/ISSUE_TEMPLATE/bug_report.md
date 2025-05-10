@@ -1,31 +1,36 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: '[BUG] '
-labels: bug
-assignees: ''
+name: "🐞 Relatório de Bug"
+about: "Informe um problema ou bug no projeto"
+title: "[BUG] "
+labels: [bug]
+assignees: []
 ---
 
-## Bug Description
-A clear and concise description of what the bug is.
+## Descrição do Bug
 
-## Steps To Reproduce
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Forneça uma descrição clara e concisa do que está acontecendo.
 
-## Expected Behavior
-A clear and concise description of what you expected to happen.
+## Passos para Reproduzir
 
-## Screenshots
-If applicable, add screenshots to help explain your problem.
+1. Vá para `...`
+2. Clique em `...`
+3. Observe o erro
 
-## Environment
-- Device: [e.g. Desktop, iPhone 12]
-- OS: [e.g. Windows 11, iOS 16]
-- Browser: [e.g. Chrome 118, Safari 17]
-- Version: [e.g. 1.0.0]
+## Comportamento Esperado
 
-## Additional Context
-Add any other context about the problem here.
+Descreva o que você esperava que acontecesse.
+
+## Capturas de Tela
+
+Se aplicável, adicione capturas de tela para ilustrar o problema.
+
+## Ambiente
+
+- **SO:** [ex: Windows 10]
+- **Navegador:** [ex: Chrome 118]
+- **Node.js:** [ex: 18.17]
+- **Gerenciador de Pacotes:** [bun/npm/yarn]
+
+## Contexto Adicional
+
+Adicione aqui quaisquer informações adicionais ou contexto.

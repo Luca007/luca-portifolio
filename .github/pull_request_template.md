@@ -1,34 +1,41 @@
-## Description
-<!--- Describe your changes in detail -->
+---
+name: "🚀 Pull Request"
+about: "Descreva as mudanças implementadas neste Pull Request"
+title: "[PR] "
+labels: []
+assignees: []
+---
 
-## Related Issue
-<!--- If fixing a bug, there should be an issue describing it with steps to reproduce -->
-<!--- Please link to the issue here: -->
-Fixes #
+## Descrição
 
-## Motivation and Context
-<!--- Why is this change required? What problem does it solve? -->
+Explique detalhadamente as alterações realizadas.
 
-## How Has This Been Tested?
-<!--- Please describe in detail how you tested your changes. -->
-<!--- Include details of your testing environment, and the tests you ran to -->
-<!--- see how your change affects other areas of the code, etc. -->
+## Issues Relacionadas
 
-## Screenshots (if appropriate):
+- Conserta # (link da issue)
 
-## Types of changes
-<!--- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to change)
-- [ ] Documentation update
+## Motivação
 
-## Checklist:
-<!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
-<!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
-- [ ] My code follows the code style of this project.
-- [ ] My change requires a change to the documentation.
-- [ ] I have updated the documentation accordingly.
-- [ ] I have read the **CONTRIBUTING.md** document.
-- [ ] I have added tests to cover my changes.
-- [ ] All new and existing tests passed.
+Descreva por que este PR é necessário e qual problema resolve.
+
+## Como Foi Testado?
+
+Detalhe como você testou as alterações e o ambiente de testes.
+
+## Capturas de Tela (se aplicável)
+
+Insira evidências visuais, se necessário.
+
+## Tipo de Mudanças
+
+- [ ] Correção de bug
+- [ ] Nova funcionalidade
+- [ ] Breaking change
+- [ ] Atualização de documentação
+
+## Checklist
+
+- [ ] Li o guia de contribuição (CONTRIBUTING.md)
+- [ ] Meu código segue as diretrizes de estilo
+- [ ] Adicionei testes, se aplicável
+- [ ] Atualizei a documentação, se necessário

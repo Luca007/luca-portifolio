@@ -1,187 +1,164 @@
-# Luca Clerot - Modern Portfolio Website
+# Luca Clerot – Modern Portfolio Website
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Next.js](https://img.shields.io/badge/Next.js-14+-black?logo=next.js)](https://nextjs.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-blue?logo=tailwind-css)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
+[![Next.js](https://img.shields.io/badge/Next.js-14+-black?logo=next.js)](https://nextjs.org/)  
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-blue?logo=tailwind-css)](https://tailwindcss.com/)  
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/)
 
-![Portfolio Hero Screenshot](./public/images/screenshots/portfolio-hero.png)
+Uma moderna página de portfólio, interativa e multilíngue, desenvolvida com Next.js, Tailwind CSS, shadcn/ui e Framer Motion. Exibe experiência profissional, habilidades, educação e projetos com tema escuro e animações envolventes.
 
-A modern, interactive, and multilingual portfolio website built with Next.js, Tailwind CSS, shadcn/ui, and Framer Motion. Designed to showcase professional experience, skills, education, and projects with a sleek dark theme and engaging animations.
+## Table of Contents
 
-<!-- Optional: Add a link to the live demo -->
-<!-- ## 🌐 Live Demo
+- [Demo](#demo)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Running the Application](#running-the-application)
+- [Project Structure](#project-structure)
+- [Usage and Customization](#usage-and-customization)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
+- [Security](#security)
 
-[View the live portfolio here](https://your-deployment-link.com) -->
+## Demo
 
-## ✨ Features
+> _Demo ao vivo: Em breve_  
+> Substitua pelo link de implantação.
 
--   **Responsive Design**: Optimized for all screen sizes, from mobile to desktop.
--   **Interactive Particle Background**: Engaging background animation using `react-tsparticles`.
--   **Smooth Animations**: Elegant page transitions and component animations powered by Framer Motion.
--   **Dark Mode First**: A visually appealing dark theme with vibrant accent colors.
--   **Multilingual Support**: Easily switch between English, Portuguese (Português), and Spanish (Español).
--   **Accessible UI**: Built with accessibility best practices using Radix UI primitives via shadcn/ui.
--   **Dynamic Project Loading**: Fetches and displays GitHub projects automatically, including README images and metadata.
--   **Optional Firestore Caching**: Can cache GitHub project data in Firestore for improved performance and reduced API calls (requires Firebase setup).
--   **Modern Tech Stack**: Leverages the latest features of Next.js (App Router), TypeScript, and Tailwind CSS.
--   **Component-Based**: Modular and reusable components for easy maintenance and extension.
+## Features
 
-## 📸 Screenshots
+- **Design Responsivo:** Compatível com dispositivos móveis, tablets e desktops.
+- **Partículas Interativas:** Animação de fundo com `react-tsparticles`.
+- **Animações Suaves:** Com Framer Motion.
+- **Modo Escuro:** Tema principal escuro com cores de destaque.
+- **Suporte Multilíngue:** Inglês, Português e Espanhol via React Context.
+- **UI Acessível:** Baseada em Radix UI e shadcn/ui.
+- **Carregamento Dinâmico de Projetos:** Busca repositórios no GitHub com metadados do README.
+- **Cache Firestore (Opcional):** Armazena dados para melhor performance.
+- **Componentes Modulares:** Reutilizáveis, usando App Router do Next.js.
+- **SEO & Performance:** Markup otimizado e carregamento rápido.
 
-<div align="center">
-  <img src="./public/images/screenshots/portfolio-skills.png" alt="Skills Section" width="45%"/>
-  <img src="./public/images/screenshots/portfolio-projects.png" alt="Projects Section" width="45%"/>
-  <!-- Add more screenshots if desired -->
-</div>
+## Screenshots
 
-## 🛠️ Tech Stack
+![Seção Hero](./public/images/screenshots/portfolio-hero.png)
 
--   **Framework**: [Next.js](https://nextjs.org/) (App Router)
--   **Language**: [TypeScript](https://www.typescriptlang.org/)
--   **Styling**: [Tailwind CSS](https://tailwindcss.com/)
--   **UI Components**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI + Tailwind)
--   **Animations**: [Framer Motion](https://www.framer.com/motion/)
--   **Particles**: [react-tsparticles](https://github.com/tsparticles/react) & [tsparticles](https://github.com/tsparticles/tsparticles)
--   **Icons**: [Lucide React](https://lucide.dev/)
--   **State Management**: React Context API (for Language)
--   **Data Fetching**: GitHub API (for projects)
--   **Linting/Formatting**: ESLint, Prettier
+![Seção Skills](./public/images/screenshots/portfolio-skills.png)
 
-## 🚀 Getting Started
+![Seção Projects](./public/images/screenshots/portfolio-projects.png)
 
-Follow these instructions to set up and run the project locally.
+## Tech Stack
 
-### Prerequisites
+| Camada            | Tecnologia                                 |
+| ----------------- | ------------------------------------------ |
+| Framework         | Next.js 14+ (App Router)                   |
+| Linguagem         | TypeScript                                 |
+| Estilização       | Tailwind CSS                               |
+| Componentes UI    | shadcn/ui (Radix UI + Tailwind)            |
+| Animações         | Framer Motion                              |
+| Partículas        | react-tsparticles & tsparticles            |
+| Ícones            | Lucide React                               |
+| Dados             | GitHub API, Firebase Firestore (opcional)  |
+| Estado            | React Context API                          |
+| Linting/Format    | ESLint, Prettier                           |
 
--   [Node.js](https://nodejs.org/): Version 18.17 or later recommended.
--   [Bun](https://bun.sh/) (Recommended) or [npm](https://www.npmjs.com/)/[yarn](https://yarnpkg.com/) package manager.
--   [Git](https://git-scm.com/) for cloning the repository.
--   A [GitHub Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) (Classic) with `public_repo` scope. This is needed to fetch project data from the GitHub API and avoid rate limits.
--   **(Optional) Firebase Project:** If you intend to use the Firestore caching feature for GitHub projects (recommended for reducing API calls, especially for admin users), you need a Firebase project.
-    -   Set up a new project at the [Firebase Console](https://console.firebase.google.com/).
-    -   Enable Firestore Database in your project.
-    -   Obtain your Firebase project configuration credentials.
+## Prerequisites
 
-### Installation & Setup
+- Node.js v18.17+  
+- Bun (recomendado) ou npm/yarn  
+- Git  
+- GitHub Personal Access Token com escopo `public_repo`  
+- (Opcional) Projeto Firebase com Firestore habilitado
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/Luca007/luca-portifolio.git
-    cd luca-portifolio
-    ```
+## Installation
 
-2.  **Install dependencies:**
-    ```bash
-    # Using Bun (recommended)
-    bun install
+```powershell
+# Clonar o repositório
+git clone https://github.com/Luca007/luca-portifolio.git
+cd luca-portifolio
 
-    # Or using npm
-    npm install
+# Instalar dependências
+bun install    # ou npm install | yarn install
+```
 
-    # Or using yarn
-    yarn install
-    ```
+## Environment Variables
 
-3.  **Set up environment variables:**
-    Create a file named `.env.local` in the root of the project directory. Add your GitHub Personal Access Token and, if using Firebase, your Firebase project credentials:
+```bash
+# Crie um arquivo .env.local com:
+NEXT_PUBLIC_GITHUB_TOKEN=SEU_TOKEN_GITHUB
+# (Opcional) Firebase
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+```
 
-    ```env
-    # .env.local
+## Running the Application
 
-    # GitHub API Token (Required)
-    NEXT_PUBLIC_GITHUB_TOKEN=YOUR_GITHUB_PERSONAL_ACCESS_TOKEN
+```powershell
+# Iniciar servidor de desenvolvimento
+bun dev     # ou npm run dev | yarn dev
+```
 
-    # Firebase Configuration (Optional - Needed for Firestore Caching)
-    NEXT_PUBLIC_FIREBASE_API_KEY=YOUR_FIREBASE_API_KEY
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=YOUR_FIREBASE_AUTH_DOMAIN
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID=YOUR_FIREBASE_PROJECT_ID
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=YOUR_FIREBASE_STORAGE_BUCKET
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=YOUR_FIREBASE_MESSAGING_SENDER_ID
-    NEXT_PUBLIC_FIREBASE_APP_ID=YOUR_FIREBASE_APP_ID
-    # NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=YOUR_FIREBASE_MEASUREMENT_ID # Optional, if using Analytics
-    ```
-    -   Replace `YOUR_GITHUB_PERSONAL_ACCESS_TOKEN` with the token you generated.
-    -   Replace the `YOUR_FIREBASE_...` placeholders with your actual Firebase project configuration values (found in your Firebase project settings under "General" -> "Your apps" -> "Web app" -> "SDK setup and configuration" -> "Config").
+Abra [http://localhost:3000](http://localhost:3000) no navegador.
 
-    *Note on GitHub Token Security: The `NEXT_PUBLIC_` prefix makes this variable accessible in the browser. While necessary for fetching data client-side in this setup, be mindful of security implications. For production, consider fetching data server-side or via API routes if the token needs to be kept secret.*
+## Project Structure
 
-    *Note on Firebase Credentials: These are typically safe to expose publicly for client-side SDK initialization.*
+```text
+├─ app/               Páginas e layouts do Next.js App Router
+├─ components/        Componentes React compartilhados
+├─ public/            Imagens, ícones e assets estáticos
+├─ styles/            CSS global e configuração Tailwind
+├─ config/            Configurações de idioma e autenticação
+├─ lib/               Utilities: GitHub, Firebase, PDF
+├─ README.md          Documentação do projeto
+├─ package.json       Dependências e scripts
+└─ tsconfig.json      Configurações do TypeScript
+```
 
-4.  **Run the development server:**
-    ```bash
-    # Using Bun
-    bun dev
+## Usage and Customization
 
-    # Or using npm
-    npm run dev
+- **Conteúdo:** Atualize textos e imagens em `app/`.
+- **Tema:** Ajuste `tailwind.config.ts` e `styles/globals.css`.
+- **Componentes:** Modifique ou adicione em `components/`.
+- **Projetos:** Configure a busca no GitHub em `lib/github.ts` e o cache em `lib/firestore.ts`.
 
-    # Or using yarn
-    yarn dev
-    ```
+## Contributing
 
-5.  **Open the application:**
-    Navigate to [http://localhost:3000](http://localhost:3000) in your web browser.
+Para contribuir com este projeto, utilize os seguintes recursos:
 
-## 🏗️ Project Structure
+- **Guia de Contribuição:** [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Código de Conduta:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- **Templates de Issue:**
+  - [🐞 Bug Report](.github/ISSUE_TEMPLATE/bug_report.md)
+  - [✨ Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)
+- **Template de Pull Request:** [PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md)
 
-    ├── app                          # App Router (pages) directory
-    │   ├── api                      # API routes
-    │   ├── about                     # About page
-    │   ├── contact                   # Contact page
-    │   ├── experience                # Experience (Resume) page
-    │   ├── projects                  # Projects page
-    │   ├── skills                    # Skills page
-    │   └── page.tsx                  # Home page
-    ├── components                   # Shared components (e.g., Navbar, Footer)
-    ├── public                       # Public assets
-    │   ├── images                   # Image assets
-    │   └── favicon.ico              # Favicon
-    ├── styles                       # Global styles
-    │   └── globals.css              # Global CSS
-    ├── .env.local                   # Local environment variables (e.g., API keys)
-    ├── .gitignore                   # Ignored files and directories in Git
-    ├── package.json                 # Project metadata and dependencies
-    ├── README.md                    # Project documentation
-    └── tsconfig.json                # TypeScript configuration
+Contribuições são bem-vindas!  
+Siga estes passos:
 
-## 🛠️ Customization
+1. Faça um fork deste repositório.  
+2. Crie uma branch: `git checkout -b feature/NovaFuncionalidade`.  
+3. Commit suas alterações: `git commit -m "feat: Descrição da mudança"`.  
+4. Push para sua branch: `git push origin feature/NovaFuncionalidade`.  
+5. Abra um Pull Request.
 
-To customize this portfolio for your own use:
+Certifique-se de que todos os checadores de lint e formatação passem.
 
-1.  **Update the content** in the `app` directory to reflect your own information, experiences, and projects.
-2.  **Replace the images** in the `public/images` directory with your own, and update the image references in the project accordingly.
-3.  **Modify the styles** in the `styles/globals.css` file to change the appearance of the portfolio to your liking.
-4.  **Change the configuration** in the `.env.local` file to include your own GitHub API token and, if applicable, your Firebase project credentials.
+## License
 
-## 🚀 Deployment
+Este projeto está licenciado sob a [MIT License](LICENSE).
 
-To deploy the portfolio website:
+## Contact
 
-1.  Build the project:
-    ```bash
-    # Using Bun
-    bun build
+- Email: [luca@example.com](mailto:luca@example.com)  
+- GitHub: [https://github.com/Luca007](https://github.com/Luca007)
 
-    # Or using npm
-    npm run build
+## Security
 
-    # Or using yarn
-    yarn build
-    ```
-
-2.  Deploy the `app` directory to a hosting provider that supports Next.js, such as Vercel or Netlify.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1.  Fork the repository.
-2.  Create a new branch (`git checkout -b feature-branch`).
-3.  Make your changes and commit them (`git commit -m 'Add new feature'`).
-4.  Push the branch to your forked repository (`git push origin feature-branch`).
-5.  Create a pull request describing your changes.
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+Para questões de segurança e vulnerabilidades, consulte a [Security Policy](SECURITY.md).
