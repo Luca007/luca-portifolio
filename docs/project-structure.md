@@ -1,8 +1,15 @@
 luca-portfolio/
-├── public/                       # Static assets
-│   └── images/                   # Image assets
-│       ├── profile-photo.jpg     # Profile photo
-│       └── screenshots/          # Website screenshots
+├── .github/                      # GitHub configuration
+│   ├── ISSUE_TEMPLATE/           # Issue templates
+│   └── PULL_REQUEST_TEMPLATE.md  # Pull request template
+├── docs/                        # Project documentation
+│   └── project-structure.md     # This file
+├── scripts/                     # Automation and maintenance scripts
+│   ├── deploy-gh-pages.sh       # GitHub Pages deployment script
+│   └── verify-build.sh          # Build verification script
+├── public/                      # Static assets
+│   ├── fonts/                   # Font files
+│   └── images/                  # Image assets & screenshots
 ├── src/
 │   ├── app/                      # Next.js App Router
 │   │   ├── layout.tsx            # Root layout with metadata
@@ -34,15 +41,8 @@ luca-portfolio/
 │   │   └── utils.ts              # Helper utilities
 │   └── config/                   # Configuration
 │       └── languages.ts          # Language settings
-├── .github/                      # GitHub configuration
-│   ├── ISSUE_TEMPLATE/           # Issue templates
-│   └── PULL_REQUEST_TEMPLATE.md  # Pull Request template
-├── next.config.mjs               # Next.js configuration
-├── tailwind.config.ts            # Tailwind CSS configuration
-├── package.json                  # Project dependencies
-├── netlify.toml                  # Netlify deployment config
-├── deploy-gh-pages.sh            # GitHub Pages deployment script
-├── verify-build.sh               # Build verification script
-├── CONTRIBUTING.md               # Contribution guidelines
-├── LICENSE                       # MIT license
-└── README.md                     # Project documentation
+├── CONTRIBUTING.md              # Contribution guidelines
+├── SECURITY.md                  # Security policy
+├── CODE_OF_CONDUCT.md           # Code of conduct
+├── LICENSE                      # MIT license
+└── README.md                    # Project overview
