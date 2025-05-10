@@ -308,7 +308,7 @@ exports.EN_CONTENT = {
                 name: "Luca Clerot Aviani",
                 title: "Full Stack Developer",
                 email: "luca.clerot@gmail.com",
-                phone: "+55 61 98XXX-XXXX",
+                phone: "+55 61 99916-6442",
                 location: "Brasília, DF, Brazil",
                 github: "https://github.com/Luca007" // Added
             },
@@ -639,7 +639,7 @@ exports.PT_CONTENT = {
                 name: "Luca Clerot Aviani",
                 title: "Desenvolvedor Full Stack",
                 email: "luca.clerot@gmail.com",
-                phone: "+55 61 98XXX-XXXX",
+                phone: "+55 61 99916-6442",
                 location: "Brasília, DF, Brasil",
                 github: "https://github.com/Luca007" // Added
             },
@@ -970,7 +970,7 @@ exports.ES_CONTENT = {
                 name: "Luca Clerot Aviani",
                 title: "Desarrollador Full Stack",
                 email: "luca.clerot@gmail.com",
-                phone: "+55 61 98XXX-XXXX",
+                phone: "+55 61 99916-6442",
                 location: "Brasília, DF, Brasil",
                 github: "https://github.com/Luca007" // Added
             },

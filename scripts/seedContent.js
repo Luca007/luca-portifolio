@@ -81,12 +81,23 @@ function main() {
                 case 2:
                     if (!(_i < _a.length)) return [3 /*break*/, 5];
                     _b = _a[_i], lang = _b[0], data = _b[1];
-                    // Include server timestamp for updatedAt field
-                    return [4 /*yield*/, (0, firestore_1.setDoc)((0, firestore_1.doc)(db, 'content', lang), __assign(__assign({}, data), { updatedAt: (0, firestore_1.serverTimestamp)() }))];
+                    // Preserve ordering by storing content as a JSON string
+                    var json = JSON.stringify(data);
+                    // Log the navigation part of the JSON to show its order before sending
+                    if (data.navigation) {
+                        try {
+                            var navigationJson = JSON.stringify(data.navigation);
+                            console.log("[".concat(lang, "] Navigation object stringified for Firestore: ").concat(navigationJson));
+                        }
+                        catch (e) {
+                            console.warn("[".concat(lang, "] Could not stringify data.navigation for logging:"), e);
+                        }
+                    }
+                    // Include server timestamp for updatedAt field and store stringified data
+                    return [4 /*yield*/, (0, firestore_1.setDoc)((0, firestore_1.doc)(db, 'content', lang), { dataJson: json, updatedAt: (0, firestore_1.serverTimestamp)() })];
                 case 3:
-                    // Include server timestamp for updatedAt field
                     _c.sent();
-                    console.log("\u2705 Seeded content for language: ".concat(lang, " with updatedAt timestamp"));
+                    console.log("\\u2705 Seeded content for language: ".concat(lang, " with ordered JSON and updatedAt timestamp"));
                     _c.label = 4;
                 case 4:
                     _i++;

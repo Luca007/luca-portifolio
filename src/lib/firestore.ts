@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { auth } from "./firebase";
 import { db } from "./firebase";
+import { contentMap } from '@/i18n/content';
 
 // --- Interfaces ---
 export interface ContentItem {
@@ -141,19 +142,31 @@ export const getFullSection = async (
   return result;
 };
 
-// Helper to fetch full content document for a language, including updatedAt timestamp
+// Helper to fetch full content for a language, parsing the ordered JSON stored under dataJson
 export const getContent = async (
   langCode: string
 ): Promise<{ data: any; updatedAt: number } | null> => {
   const contentRef = doc(db, 'content', langCode);
   const snap = await getDoc(contentRef);
-  if (snap.exists()) {
-    const raw = snap.data();
-    const ts = (raw.updatedAt as Timestamp)?.toMillis() ?? 0;
-    delete raw.updatedAt;
-    return { data: raw, updatedAt: ts };
+  if (!snap.exists()) return null;
+  const raw = snap.data();
+  const ts = (raw.updatedAt as Timestamp)?.toMillis() ?? 0;
+  let data: any;
+  if (typeof raw.dataJson === 'string') {
+    try {
+      data = JSON.parse(raw.dataJson);
+    } catch (e) {
+      console.error('Error parsing content JSON:', e);
+      // fallback to default map on parse error
+      data = contentMap[langCode] || {};
+    }
+  } else {
+    // no JSON stored: fallback to raw object except metadata
+    const { dataJson, updatedAt, ...rest } = raw;
+    // if rest is empty, fallback to default map
+    data = Object.keys(rest).length ? rest : (contentMap[langCode] || {});
   }
-  return null;
+  return { data, updatedAt: ts };
 };
 
 /**

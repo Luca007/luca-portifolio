@@ -6,7 +6,7 @@ luca-portfolio/
 │   └── project-structure.md     # This file
 ├── scripts/                     # Automation and maintenance scripts
 │   ├── deploy-gh-pages.sh       # GitHub Pages deployment script
-│   └── verify-build.sh          # Build verification script
+│   └── seedContent.js           # Content seeding script for Firestore
 ├── public/                      # Static assets
 │   ├── fonts/                   # Custom font files
 │   ├── images/                  # Image assets & screenshots
@@ -49,7 +49,8 @@ luca-portfolio/
 │   ├── contexts/                # React context providers
 │   │   └── LanguageContext.tsx   # Language context provider
 │   ├── i18n/                    # Internationalization content
-│   │   └── content.ts            # Multilingual content
+│   │   ├── content.js            # Multilingual content (JavaScript version)
+│   │   └── content.ts            # Multilingual content (TypeScript source)
 │   ├── lib/                     # Utility modules
 │   │   ├── firebase.ts
 │   │   ├── firestore.ts
@@ -57,7 +58,7 @@ luca-portfolio/
 │   │   ├── pdfGenerator.ts      # PDF creation logic
 │   │   └── utils.ts             # Helper utilities
 │   ├── templates/               # JSON/data templates
-│   └── types/                   # TypeScript custom types
+│   └── types/                   # TypeScript custom types (ensure no other critical types are here if removing readline-sync.d.ts)
 ├── .devcontainer/               # VS Code devcontainer config
 ├── .eslintrc.json               # ESLint configuration
 ├── eslint.config.mjs            # Additional ESLint settings

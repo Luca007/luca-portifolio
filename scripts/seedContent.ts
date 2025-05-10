@@ -32,9 +32,21 @@ async function main() {
 
   // Seed each language's content into Firestore under `content/{lang}`
   for (const [lang, data] of Object.entries(contentMap)) {
-    // Include server timestamp for updatedAt field
-    await setDoc(doc(db, 'content', lang), { ...data, updatedAt: serverTimestamp() } as any);
-    console.log(`✅ Seeded content for language: ${lang} with updatedAt timestamp`);
+    // Preserve ordering by storing content as a JSON string
+    const json = JSON.stringify(data);
+
+    // Log the navigation part of the JSON to show its order before sending
+    if (data.navigation) {
+      try {
+        const navigationJson = JSON.stringify(data.navigation);
+        console.log(`[${lang}] Navigation object stringified for Firestore: ${navigationJson}`);
+      } catch (e) {
+        console.warn(`[${lang}] Could not stringify data.navigation for logging:`, e);
+      }
+    }
+
+    await setDoc(doc(db, 'content', lang), { dataJson: json, updatedAt: serverTimestamp() } as any);
+    console.log(`✅ Seeded content for language: ${lang} with ordered JSON and updatedAt timestamp`);
   }
 
   console.log('🎉 Content seeding complete.');
