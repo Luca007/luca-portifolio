@@ -141,6 +141,21 @@ export const getFullSection = async (
   return result;
 };
 
+// Helper to fetch full content document for a language, including updatedAt timestamp
+export const getContent = async (
+  langCode: string
+): Promise<{ data: any; updatedAt: number } | null> => {
+  const contentRef = doc(db, 'content', langCode);
+  const snap = await getDoc(contentRef);
+  if (snap.exists()) {
+    const raw = snap.data();
+    const ts = (raw.updatedAt as Timestamp)?.toMillis() ?? 0;
+    delete raw.updatedAt;
+    return { data: raw, updatedAt: ts };
+  }
+  return null;
+};
+
 /**
  * Checks if the current user is an admin (simplified: checks if any user is logged in).
  */

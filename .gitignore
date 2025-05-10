@@ -2,3 +2,8 @@ node_modules
 out
 .devcontainer
 .env
+.env.local
+# Type declarations for scripts
+scripts/*.d.ts
+# Compiled seed scripts
+scripts-build/
