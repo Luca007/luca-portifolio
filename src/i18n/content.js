@@ -19,13 +19,20 @@ exports.EN_CONTENT = {
     greeting: "Hello, I'm",
     title: "Luca",
     subtitle: "Clerot",
-    roles: [
-      "Full Stack Developer",
-      "Software Engineer",
-      "UI/UX Designer",
-      "Technology Enthusiast",
-      "Problem Solver"
-    ]
+    roles: ["Full Stack Developer", "Frontend Specialist", "Backend Architect", "UI/UX Enthusiast"],
+    intro: "Passionate about creating innovative and efficient solutions.",
+    resume: "Download CV",
+    decorativeCodeSnippet1: `const developer = {
+  name: "Luca",
+  skills: ["JS", "React", "Node"],
+  passionate: true
+};`,
+    decorativeCodeSnippet2: `function createSolution(problem) {
+  return analyze(problem)
+    .then(design)
+    .then(implement)
+    .then(test);
+}`,
   },
   about: {
     title: "About Me",
@@ -372,13 +379,20 @@ exports.PT_CONTENT = {
     greeting: "Olá, eu sou",
     title: "Luca",
     subtitle: "Clerot",
-    roles: [
-      "Desenvolvedor Full Stack",
-      "Engenheiro de Software",
-      "Designer UI/UX",
-      "Entusiasta de Tecnologia",
-      "Solucionador de Problemas"
-    ]
+    roles: ["Desenvolvedor Full Stack", "Especialista Frontend", "Arquiteto Backend", "Entusiasta UI/UX"],
+    intro: "Apaixonado por criar soluções inovadoras e eficientes.",
+    resume: "Baixar CV",
+    decorativeCodeSnippet1: `const desenvolvedor = {
+  nome: "Luca",
+  habilidades: ["JS", "React", "Node"],
+  apaixonado: true
+};`,
+    decorativeCodeSnippet2: `function criarSolucao(problema) {
+  return analisar(problema)
+    .then(projetar)
+    .then(implementar)
+    .then(testar);
+}`,
   },
   about: {
     title: "Sobre Mim",
@@ -725,13 +739,20 @@ exports.ES_CONTENT = {
     greeting: "Hola, soy",
     title: "Luca",
     subtitle: "Clerot",
-    roles: [
-      "Desarrollador Full Stack",
-      "Ingeniero de Software",
-      "Diseñador UI/UX",
-      "Entusiasta de la Tecnología",
-      "Solucionador de Problemas"
-    ]
+    roles: ["Desarrollador Full Stack", "Especialista Frontend", "Arquitecto Backend", "Entusiasta UI/UX"],
+    intro: "Apasionado por crear soluciones innovadoras y eficientes.",
+    resume: "Descargar CV",
+    decorativeCodeSnippet1: `const desarrollador = {
+  nombre: "Luca",
+  habilidades: ["JS", "React", "Node"],
+  apasionado: true
+};`,
+    decorativeCodeSnippet2: `function crearSolucion(problema) {
+  return analizar(problema)
+    .then(diseñar)
+    .then(implementar)
+    .then(probar);
+}`,
   },
   about: {
     title: "Sobre Mí",

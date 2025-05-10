@@ -33,6 +33,8 @@ export interface Content {
     title: string;
     subtitle: string;
     roles: string[];
+    decorativeCodeSnippet1?: string; // Added
+    decorativeCodeSnippet2?: string; // Added
   };
   about: {
     title: string;
@@ -247,7 +249,18 @@ export const EN_CONTENT: Content = {
       "UI/UX Designer",
       "Technology Enthusiast",
       "Problem Solver"
-    ]
+    ],
+    decorativeCodeSnippet1: `const developer = {
+  name: "Luca",
+  skills: ["JS", "React", "Node"],
+  passionate: true
+};`,
+    decorativeCodeSnippet2: `function createSolution(problem) {
+  return analyze(problem)
+    .then(design)
+    .then(implement)
+    .then(test);
+}`
   },
   about: {
     title: "About Me",
@@ -591,7 +604,18 @@ export const PT_CONTENT: Content = {
       "Designer UI/UX",
       "Entusiasta de Tecnologia",
       "Solucionador de Problemas"
-    ]
+    ],
+    decorativeCodeSnippet1: `const desenvolvedor = {
+  nome: "Luca",
+  habilidades: ["JS", "React", "Node"],
+  apaixonado: true
+};`,
+    decorativeCodeSnippet2: `function criarSolucao(problema) {
+  return analisar(problema)
+    .then(projetar)
+    .then(implementar)
+    .then(testar);
+}`
   },
   about: {
     title: "Sobre Mim",
@@ -936,7 +960,18 @@ export const ES_CONTENT: Content = {
       "Diseñador UI/UX",
       "Entusiasta de la Tecnología",
       "Solucionador de Problemas"
-    ]
+    ],
+    decorativeCodeSnippet1: `const desarrollador = {
+  nombre: "Luca",
+  habilidades: ["JS", "React", "Node"],
+  apasionado: true
+};`,
+    decorativeCodeSnippet2: `function crearSolucion(problema) {
+  return analizar(problema)
+    .then(diseñar)
+    .then(implementar)
+    .then(probar);
+}`
   },
   about: {
     title: "Sobre Mí",

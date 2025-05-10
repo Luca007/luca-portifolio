@@ -254,13 +254,19 @@ export default function Hero() {
         transition={{ duration: 1, delay: 1.5 }}
         style={{ opacity }}
       >
-        <pre className="text-primary font-mono text-sm">
-          {`const desenvolvedor = {
-  nome: "Luca",
-  habilidades: ["JS", "React", "Node"],
-  apaixonado: true
-};`}
-        </pre>
+        <EditableItem
+          id="hero-snippet-1"
+          path={["home", "decorativeCodeSnippet1"]}
+          type="textarea"
+          content={{ text: content.home.decorativeCodeSnippet1 || "" }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <pre className="text-primary font-mono text-sm whitespace-pre-wrap">
+            {content.home.decorativeCodeSnippet1}
+          </pre>
+        </EditableItem>
       </motion.div>
 
       <motion.div
@@ -270,14 +276,19 @@ export default function Hero() {
         transition={{ duration: 1, delay: 1.8 }}
         style={{ opacity }}
       >
-        <pre className="text-primary font-mono text-sm">
-          {`function criarSolucao(problema) {
-  return analisar(problema)
-    .then(projetar)
-    .then(implementar)
-    .then(testar);
-}`}
-        </pre>
+        <EditableItem
+          id="hero-snippet-2"
+          path={["home", "decorativeCodeSnippet2"]}
+          type="textarea"
+          content={{ text: content.home.decorativeCodeSnippet2 || "" }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <pre className="text-primary font-mono text-sm whitespace-pre-wrap">
+            {content.home.decorativeCodeSnippet2}
+          </pre>
+        </EditableItem>
       </motion.div>
 
       {/* Main content */}
