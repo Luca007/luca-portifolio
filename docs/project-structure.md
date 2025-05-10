@@ -8,15 +8,26 @@ luca-portfolio/
 │   ├── deploy-gh-pages.sh       # GitHub Pages deployment script
 │   └── verify-build.sh          # Build verification script
 ├── public/                      # Static assets
-│   ├── fonts/                   # Font files
-│   └── images/                  # Image assets & screenshots
-├── src/
-│   ├── app/                      # Next.js App Router
-│   │   ├── layout.tsx            # Root layout with metadata
-│   │   ├── page.tsx              # Main page component
-│   │   ├── globals.css           # Global styles
-│   │   └── ClientBody.tsx        # Client-side wrapper
-│   ├── components/               # React components
+│   ├── fonts/                   # Custom font files
+│   ├── images/                  # Image assets & screenshots
+│   │   ├── exercise-generator.jpg
+│   │   ├── grid.svg
+│   │   ├── profile-photo.jpg
+│   │   ├── resistor-calculator.jpg
+│   │   ├── projects/
+│   │   │   ├── code.png
+│   │   │   └── code2.jpg
+│   │   └── screenshots/
+│   │       ├── portfolio-hero.png
+│   │       └── portfolio-projects.png
+│   └── resume_prebuild/         # Prebuilt resume PDFs
+├── src/                         # Source code
+│   ├── app/                     # Next.js App Router
+│   │   ├── layout.tsx           # Root layout
+│   │   ├── page.tsx             # Main page
+│   │   ├── globals.css          # Global styles
+│   │   └── ClientBody.tsx       # Client wrapper
+│   ├── components/              # Shared React components
 │   │   ├── About.tsx             # About section
 │   │   ├── Contact.tsx           # Contact section
 │   │   ├── Education.tsx         # Education section
@@ -33,16 +44,32 @@ luca-portfolio/
 │   │   ├── ThemeProvider.tsx     # Dark/light theme provider
 │   │   ├── ThemeSwitcher.tsx     # Theme toggle
 │   │   └── ui/                   # shadcn/ui components
-│   ├── contexts/                 # React contexts
+│   ├── config/                  # Configuration files
+│   │   └── languages.ts          # Language settings
+│   ├── contexts/                # React context providers
 │   │   └── LanguageContext.tsx   # Language context provider
-│   ├── i18n/                     # Internationalization
+│   ├── i18n/                    # Internationalization content
 │   │   └── content.ts            # Multilingual content
-│   ├── lib/                      # Utility functions
-│   │   └── utils.ts              # Helper utilities
-│   └── config/                   # Configuration
-│       └── languages.ts          # Language settings
+│   ├── lib/                     # Utility modules
+│   │   ├── firebase.ts
+│   │   ├── firestore.ts
+│   │   ├── github.ts
+│   │   ├── pdfGenerator.ts      # PDF creation logic
+│   │   └── utils.ts             # Helper utilities
+│   ├── templates/               # JSON/data templates
+│   └── types/                   # TypeScript custom types
+├── .devcontainer/               # VS Code devcontainer config
+├── .eslintrc.json               # ESLint configuration
+├── eslint.config.mjs            # Additional ESLint settings
+├── next.config.mjs              # Next.js configuration
+├── postcss.config.mjs           # PostCSS configuration
+├── tailwind.config.ts           # Tailwind CSS configuration
+├── tsconfig.json                # TypeScript configuration
+├── package.json                 # Project metadata & scripts
+├── bun.lock                     # Bun lockfile
+├── README.md                    # Project overview
 ├── CONTRIBUTING.md              # Contribution guidelines
 ├── SECURITY.md                  # Security policy
 ├── CODE_OF_CONDUCT.md           # Code of conduct
 ├── LICENSE                      # MIT license
-└── README.md                    # Project overview
+└── node_modules/                # Dependencies
