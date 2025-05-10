@@ -34,9 +34,9 @@ luca-portfolio/
 │   │   └── utils.ts              # Helper utilities
 │   └── config/                   # Configuration
 │       └── languages.ts          # Language settings
-├── .github/                      # GitHub templates
+├── .github/                      # GitHub configuration
 │   ├── ISSUE_TEMPLATE/           # Issue templates
-│   └── pull_request_template.md  # PR template
+│   └── PULL_REQUEST_TEMPLATE.md  # Pull Request template
 ├── next.config.mjs               # Next.js configuration
 ├── tailwind.config.ts            # Tailwind CSS configuration
 ├── package.json                  # Project dependencies
