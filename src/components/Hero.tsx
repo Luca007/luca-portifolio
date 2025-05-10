@@ -6,9 +6,14 @@ import { ArrowDown, Github, Linkedin, Mail, Code, Sparkles } from "lucide-react"
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { motion, useAnimation, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { EditableItem } from "@/components/ui/EditableItem";
+import { useEdit } from "@/contexts/EditContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Hero() {
-  const { content } = useLanguage();
+  const { content, currentLanguage } = useLanguage(); // Destructure currentLanguage
+  const { isAdmin } = useAuth();
+  const { isEditMode, handleEdit } = useEdit();
   const [currentRoleIndex, setCurrentRoleIndex] = useState(0);
   const [displayText, setDisplayText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -283,21 +288,32 @@ export default function Hero() {
           animate="show"
           className="max-w-4xl mx-auto text-center">
 
-          <motion.div
-            className="mb-6"
-            variants={item}
+          <EditableItem
+            id="home-greeting"
+            path={["home", "greeting"]}
+            type="text"
+            content={{ text: content.home.greeting }}
+            isAdmin={isAdmin}
+            isEditMode={isEditMode && isAdmin} // Ensured correct prop
+            onEdit={handleEdit}
           >
-            <motion.p className="text-xl md:text-2xl mb-4 text-foreground/80 inline-flex items-center justify-center">
-              {content.home.greeting}
-              <motion.span
-                animate={floatingAnimation}
-                className="ml-2"
-              >
-                <Sparkles className="h-5 w-5 text-yellow-400" />
-              </motion.span>
-            </motion.p>
-          </motion.div>
+            <motion.div
+              className="mb-6"
+              variants={item}
+            >
+              <motion.p className="text-xl md:text-2xl mb-4 text-foreground/80 inline-flex items-center justify-center">
+                {content.home.greeting}
+                <motion.span
+                  animate={floatingAnimation}
+                  className="ml-2"
+                >
+                  <Sparkles className="h-5 w-5 text-yellow-400" />
+                </motion.span>
+              </motion.p>
+            </motion.div>
+          </EditableItem>
 
+          {/* Refactored Title and Subtitle Section */}
           <motion.div
             style={{ scale: nameScale, y: nameY }}
             className="mb-6"
@@ -306,8 +322,29 @@ export default function Hero() {
               variants={item}
               className="text-4xl md:text-7xl font-bold relative z-10 mb-2"
             >
-              <span className="relative inline-block">
-                {content.home.title}{" "}
+              <EditableItem
+                id="home-main-title"
+                path={["home", "title"]}
+                type="text"
+                content={{ text: content.home.title }}
+                isAdmin={isAdmin}
+                isEditMode={isEditMode && isAdmin}
+                onEdit={handleEdit}
+              >
+                <span className="relative inline-block">
+                  {content.home.title}
+                </span>
+              </EditableItem>
+              {" "} {/* Space between title and subtitle */}
+              <EditableItem
+                id="home-subtitle"
+                path={["home", "subtitle"]}
+                type="text"
+                content={{ text: content.home.subtitle }}
+                isAdmin={isAdmin}
+                isEditMode={isEditMode && isAdmin}
+                onEdit={handleEdit}
+              >
                 <span className="text-primary relative">
                   {content.home.subtitle}
                   <motion.span
@@ -317,9 +354,8 @@ export default function Hero() {
                     transition={{ duration: 1.2, delay: 1 }}
                   />
                 </span>
-              </span>
+              </EditableItem>
             </motion.h1>
-
             <motion.div
               className="bg-gradient-to-r from-primary/10 to-transparent h-[30px] w-[120%] -ml-[10%] -mt-6 rounded-full hidden md:block"
               initial={{ opacity: 0 }}
@@ -327,17 +363,49 @@ export default function Hero() {
               transition={{ delay: 0.8 }}
             />
           </motion.div>
+          {/* End of Refactored Title and Subtitle Section */}
 
-          <motion.div
-            variants={item}
-            className="h-16 flex items-center justify-center mx-auto px-3 border border-border/30 rounded-full bg-background/50 backdrop-blur-sm shadow-sm max-w-md mb-12"
+          <EditableItem
+            id="home-roles-typewriter"
+            path={["home", "roles"]}
+            type="text"
+            content={{ text: content.home.roles.join(', ') }}
+            isAdmin={isAdmin}
+            isEditMode={isEditMode && isAdmin}
+            onEdit={(
+              editedPath,
+              newValueFromEditableItem, // This is { text: "string" } for type="text"
+              lang, // language code from EditableItem
+              originalContentPassedToEditableItem // This is { text: "original_string" }
+            ) => {
+              if (
+                typeof newValueFromEditableItem === 'object' &&
+                newValueFromEditableItem !== null &&
+                'text' in newValueFromEditableItem &&
+                typeof (newValueFromEditableItem as { text: string }).text === 'string'
+              ) {
+                const newRolesString = (newValueFromEditableItem as { text: string }).text;
+                const newRolesArray = newRolesString.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+                const originalRolesArray = content.home.roles; // Use current roles array from content
+                handleEdit(editedPath, newRolesArray, currentLanguage.code, originalRolesArray);
+              } else {
+                console.error("Unexpected newValue format from EditableItem for roles:", newValueFromEditableItem);
+                // Fallback: use original roles if parsing fails
+                handleEdit(editedPath, content.home.roles, currentLanguage.code, content.home.roles);
+              }
+            }}
           >
-            <h2 className="text-xl md:text-2xl font-medium flex items-center">
-              <Code className="mr-3 text-primary" size={18} />
-              <span className="text-gradient">{displayText}</span>
-              <span className="animate-blink ml-1">|</span>
-            </h2>
-          </motion.div>
+            <motion.div
+              variants={item}
+              className="h-16 flex items-center justify-center mx-auto px-3 border border-border/30 rounded-full bg-background/50 backdrop-blur-sm shadow-sm max-w-md mb-12"
+            >
+              <h2 className="text-xl md:text-2xl font-medium flex items-center">
+                <Code className="mr-3 text-primary" size={18} />
+                <span className="text-gradient">{displayText}</span>
+                <span className="animate-blink ml-1">|</span>
+              </h2>
+            </motion.div>
+          </EditableItem>
 
           <motion.div
             variants={item}

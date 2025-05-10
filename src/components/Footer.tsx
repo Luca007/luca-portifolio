@@ -7,6 +7,9 @@ import { LANGUAGES, Language } from "@/config/languages";
 import Logo from "@/components/Logo";
 import { Github, Linkedin, Mail, ArrowUp, Code, Heart, Globe } from "lucide-react";
 import { motion } from "framer-motion";
+import { EditableItem } from "@/components/ui/EditableItem";
+import { useEdit } from "@/contexts/EditContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- Animation Variants ---
 const hoverAnimation = {
@@ -179,6 +182,8 @@ const FooterCopyright: React.FC<FooterCopyrightProps> = ({ copyrightText, powere
 export default function Footer() {
   const { content, currentLanguage, setLanguage } = useLanguage();
   const currentYear = new Date().getFullYear();
+  const { isAdmin } = useAuth();
+  const { isEditMode, handleEdit } = useEdit();
 
   const socialLinks = [
     { name: "GitHub", url: "https://github.com/Luca007", icon: <Github className="h-5 w-5" /> },
@@ -200,29 +205,68 @@ export default function Footer() {
     <footer className="bg-background/80 backdrop-blur-sm border-t border-border/20 relative pt-12 pb-6">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
       <ScrollToTopButton />
-
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           <div className="md:col-span-5">
-            <FooterBrand description={content.footer.description} socialLinks={socialLinks} />
+            <EditableItem
+              id="footer-description"
+              path={["footer"]}
+              type="text"
+              content={{ text: content.footer.description, type: "text" }}
+              isAdmin={isAdmin}
+              isEditMode={isEditMode}
+              onEdit={handleEdit}
+            >
+              <FooterBrand description={content.footer.description} socialLinks={socialLinks} />
+            </EditableItem>
           </div>
           <div className="md:col-span-3">
-            <FooterNavigation title={content.footer.navigationTitle} navLinks={navLinks} />
+            <EditableItem
+              id="footer-navigation-title"
+              path={["footer", "navigationTitle"]}
+              type="heading"
+              content={{ text: content.footer.navigationTitle, type: "heading" }}
+              isAdmin={isAdmin}
+              isEditMode={isEditMode}
+              onEdit={handleEdit}
+            >
+              <FooterNavigation title={content.footer.navigationTitle} navLinks={navLinks} />
+            </EditableItem>
           </div>
           <div className="md:col-span-4">
-            <FooterContactAndLanguage
-              contactTitle={content.contact.title}
-              languageTitle={content.navigation.language}
-              currentLanguage={currentLanguage}
-              setLanguage={setLanguage}
-            />
+            <EditableItem
+              id="footer-contact-title"
+              path={["contact", "title"]}
+              type="heading"
+              content={{ text: content.contact.title, type: "heading" }}
+              isAdmin={isAdmin}
+              isEditMode={isEditMode}
+              onEdit={handleEdit}
+            >
+              <FooterContactAndLanguage
+                contactTitle={content.contact.title}
+                languageTitle={content.navigation.language}
+                currentLanguage={currentLanguage}
+                setLanguage={setLanguage}
+              />
+            </EditableItem>
           </div>
         </div>
-        <FooterCopyright
-          copyrightText={content.footer.copyright}
-          poweredByText={content.footer.poweredBy}
-          currentYear={currentYear}
-        />
+        <EditableItem
+          id="footer-copyright"
+          path={["footer", "copyright"]}
+          type="text"
+          content={{ text: content.footer.copyright, type: "text" }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode}
+          onEdit={handleEdit}
+        >
+          <FooterCopyright
+            copyrightText={content.footer.copyright}
+            poweredByText={content.footer.poweredBy}
+            currentYear={currentYear}
+          />
+        </EditableItem>
       </div>
     </footer>
   );

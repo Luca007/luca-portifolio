@@ -14,11 +14,12 @@ import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 import { AdminLoginModal } from "@/components/ui/AdminLoginModal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { EditableItem } from "@/components/ui/EditableItem";
 
 export default function SimpleFixedHeader() {
   const { content } = useLanguage();
   const { user, isAdmin, signOut } = useAuth();
-  const { isEditMode, setEditMode } = useEdit();
+  const { isEditMode, setEditMode, handleEdit } = useEdit();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
@@ -92,7 +93,6 @@ export default function SimpleFixedHeader() {
 
   // Navigation items - Atualizado para usar traduções dinâmicas
   const navigationKeys = Object.keys(content.navigation) as Array<keyof typeof content.navigation>;
-  
   const navigationItems = navigationKeys
     .filter(key => key !== 'blog' && key !== 'language') // Remove 'blog' e 'language' da navegação principal
     .map(key => ({
@@ -200,24 +200,33 @@ export default function SimpleFixedHeader() {
         {/* Desktop navigation */}
         <nav className="hidden md:flex items-center space-x-1">
           {navigationItems.map((item) => (
-            <button
+            <EditableItem
               key={item.id}
-              onClick={() => scrollToSection(item.id)}
-              className={cn(
-                "relative px-3 py-2 text-sm transition-colors rounded-md group", // Adjusted padding/text size
-                activeSection === item.id
-                  ? "text-primary font-medium"
-                  : "text-foreground/70 hover:text-primary hover:bg-muted/50"
-              )}
-              aria-current={activeSection === item.id ? "page" : undefined}
+              id={`nav-item-${item.id}`}
+              path={["navigation", item.id]}
+              type="text"
+              content={{ text: item.name, type: "text" }}
+              isAdmin={isAdmin}
+              isEditMode={isEditMode}
+              onEdit={handleEdit}
             >
-              {item.name} {/* Nome traduzido */}
-              {/* Underline effect for active item */}
-              <span className={cn(
-                  "absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-4/5",
-                  activeSection === item.id ? "w-4/5" : "w-0"
-              )}></span>
-            </button>
+              <button
+                onClick={() => scrollToSection(item.id)}
+                className={cn(
+                  "relative px-3 py-2 text-sm transition-colors rounded-md group",
+                  activeSection === item.id
+                    ? "text-primary font-medium"
+                    : "text-foreground/70 hover:text-primary hover:bg-muted/50"
+                )}
+                aria-current={activeSection === item.id ? "page" : undefined}
+              >
+                {item.name}
+                <span className={cn(
+                    "absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-4/5",
+                    activeSection === item.id ? "w-4/5" : "w-0"
+                )}></span>
+              </button>
+            </EditableItem>
           ))}
           <div className="flex items-center pl-2 space-x-1 border-l border-border/20 ml-2"> {/* Separator */}
             <ThemeSwitcher /> {/* Se o dropdown estiver com problemas, verifique seu z-index */}
@@ -293,22 +302,32 @@ export default function SimpleFixedHeader() {
               {/* Mobile Menu Navigation */}
               <nav className="flex-1 overflow-auto py-4 px-4 space-y-1">
                 {navigationItems.map((item) => (
-                  <button
+                  <EditableItem
                     key={item.id}
-                    onClick={() => scrollToSection(item.id)}
-                    className={cn(
-                      "w-full p-3 text-left rounded-md flex items-center justify-between transition-all text-base", // Ensure full width
-                      activeSection === item.id
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-foreground/80 hover:bg-muted/50 hover:text-primary"
-                    )}
-                    aria-current={activeSection === item.id ? "page" : undefined}
+                    id={`nav-item-mobile-${item.id}`}
+                    path={["navigation", item.id]}
+                    type="text"
+                    content={{ text: item.name, type: "text" }}
+                    isAdmin={isAdmin}
+                    isEditMode={isEditMode}
+                    onEdit={handleEdit}
                   >
-                    <span>{item.name}</span> {/* Nome traduzido */}
-                    {activeSection === item.id && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                    )}
-                  </button>
+                    <button
+                      onClick={() => scrollToSection(item.id)}
+                      className={cn(
+                        "w-full p-3 text-left rounded-md flex items-center justify-between transition-all text-base",
+                        activeSection === item.id
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-foreground/80 hover:bg-muted/50 hover:text-primary"
+                      )}
+                      aria-current={activeSection === item.id ? "page" : undefined}
+                    >
+                      <span>{item.name}</span>
+                      {activeSection === item.id && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                      )}
+                    </button>
+                  </EditableItem>
                 ))}
               </nav>
 

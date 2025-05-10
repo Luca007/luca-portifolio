@@ -21,47 +21,50 @@ import { motion } from "framer-motion";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { toast } from "@/components/ui/toast";
+import { EditableItem } from "@/components/ui/EditableItem";
+import { useEdit } from "@/contexts/EditContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ContactInfoItem {
-  icon: JSX.Element;
-  title: string;
-  value: string;
-  link: string;
+  iconComponent: JSX.Element; // Icon component with EditableItem wrapper
+  titleComponent: JSX.Element; // Title component with EditableItem
+  valueComponent: JSX.Element; // Value component with EditableItem
+  linkComponent?: JSX.Element; // Optional link component for URLs
+  link: string; // URL for the link
 }
 
 interface ContactInfoCardProps {
   contactInfo: ContactInfoItem[];
+  isEditMode: boolean;
 }
 
-const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ contactInfo }) => (
+const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ contactInfo, isEditMode }) => (
   <Card className="bg-gradient-to-br from-background to-muted/20 border border-border/30 shadow-sm h-full hover:shadow-lg hover:shadow-primary/5 transition-all duration-500">
     <CardContent className="p-6">
-      <h3 className="text-xl font-semibold mb-6">
-        {useLanguage().content.contact.infoTitle}
-      </h3>
       <div className="space-y-4">
         {contactInfo.map((info: ContactInfoItem, index: number) => (
-          <motion.a
+          <motion.div
             key={index}
-            href={info.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-start hover:bg-muted/20 p-3 rounded-lg transition-colors group"
-            whileHover={{ x: 5 }}
+            className="flex items-start hover:bg-muted/20 p-3 rounded-lg transition-colors group cursor-pointer"
+            whileHover={isEditMode ? {} : { x: 5 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            onClick={() => {
+              if (!isEditMode && info.link) {
+                window.open(info.link, "_blank", "noopener,noreferrer");
+              }
+            }}
           >
-            <div className="bg-primary/10 p-2 rounded-full mr-4 group-hover:bg-primary/20 transition-colors duration-300">
-              {info.icon}
-            </div>
+            {info.iconComponent}
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                {info.title}
-              </p>
-              <p className="group-hover:text-primary transition-colors font-medium">
-                {info.value}
-              </p>
+              {info.titleComponent}
+              {info.valueComponent}
+              {info.linkComponent && (
+                <div className="mt-1">
+                  {info.linkComponent}
+                </div>
+              )}
             </div>
-          </motion.a>
+          </motion.div>
         ))}
       </div>
     </CardContent>
@@ -93,7 +96,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ handleSubmit, formRef, isSubm
             <p className="text-muted-foreground text-center max-w-md">
               {content.contact.form.success}
             </p>
-            <Button onClick={resetForm}>
+            <Button onClick={resetForm} className="mt-4">
               {content.contact.successButton}
             </Button>
           </div>
@@ -184,11 +187,13 @@ const ContactForm: React.FC<ContactFormProps> = ({ handleSubmit, formRef, isSubm
         )}
       </CardContent>
     </Card>
-  )
+  );
 };
 
 export default function Contact() {
   const { content, currentLanguage } = useLanguage();
+  const { isAdmin } = useAuth();
+  const { isEditMode, handleEdit } = useEdit();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -199,37 +204,247 @@ export default function Contact() {
     setIsMounted(true);
   }, []);
 
-  const contactInfo = [
+  const contactInfo: ContactInfoItem[] = [
     {
-      icon: <Mail className="h-5 w-5 text-primary" />,
-      title: "Email",
-      value: "luca.clerot@gmail.com",
-      link: "mailto:luca.clerot@gmail.com"
+      iconComponent: (
+        <EditableItem
+          id="contact-email-icon"
+          path={['contact', 'icons', 'email']}
+          type="icon"
+          content={{ icon: "Mail" }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <div className="bg-primary/10 p-2 rounded-full mr-4 group-hover:bg-primary/20 transition-colors duration-300">
+            <Mail className="h-5 w-5 text-primary" />
+          </div>
+        </EditableItem>
+      ),
+      titleComponent: (
+        <EditableItem
+          id="contact-email-label"
+          path={['contact', 'emailLabel']}
+          type="text"
+          content={{ text: content.contact.emailLabel }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <p className="text-sm font-medium text-muted-foreground">
+            {content.contact.emailLabel}
+          </p>
+        </EditableItem>
+      ),
+      valueComponent: (
+        <EditableItem
+          id="contact-email-value"
+          path={['contact', 'emailValue']}
+          type="text"
+          content={{ text: content.contact.emailValue }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <p className="group-hover:text-primary transition-colors font-medium">
+            {content.contact.emailValue}
+          </p>
+        </EditableItem>
+      ),
+      link: `mailto:${content.contact.emailValue}`,
     },
     {
-      icon: <Phone className="h-5 w-5 text-primary" />,
-      title: currentLanguage.code === "pt" ? "Telefone" : "Phone",
-      value: "(61) 99916-6442",
-      link: "tel:+5561999166442"
+      iconComponent: (
+        <EditableItem
+          id="contact-phone-icon"
+          path={['contact', 'icons', 'phone']}
+          type="icon"
+          content={{ icon: "Phone" }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <div className="bg-primary/10 p-2 rounded-full mr-4 group-hover:bg-primary/20 transition-colors duration-300">
+            <Phone className="h-5 w-5 text-primary" />
+          </div>
+        </EditableItem>
+      ),
+      titleComponent: (
+        <EditableItem
+          id="contact-phone-label"
+          path={['contact', 'phoneLabel']}
+          type="text"
+          content={{ text: content.contact.phoneLabel }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <p className="text-sm font-medium text-muted-foreground">
+            {content.contact.phoneLabel}
+          </p>
+        </EditableItem>
+      ),
+      valueComponent: (
+        <EditableItem
+          id="contact-phone-value"
+          path={['contact', 'phoneValue']}
+          type="text"
+          content={{ text: content.contact.phoneValue }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <p className="group-hover:text-primary transition-colors font-medium">
+            {content.contact.phoneValue}
+          </p>
+        </EditableItem>
+      ),
+      link: `tel:${content.contact.phoneValue}`,
     },
     {
-      icon: <MapPin className="h-5 w-5 text-primary" />,
-      title: currentLanguage.code === "pt" ? "Localização" : "Location",
-      value: "SHIGS 703 Bl O Casa 41, Brasília, DF",
-      link: "https://maps.google.com/?q=SHIGS+703+Bl+O+Casa+41+Brasília+DF+70331-715"
+      iconComponent: (
+        <EditableItem
+          id="contact-location-icon"
+          path={['contact', 'icons', 'location']}
+          type="icon"
+          content={{ icon: "MapPin" }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <div className="bg-primary/10 p-2 rounded-full mr-4 group-hover:bg-primary/20 transition-colors duration-300">
+            <MapPin className="h-5 w-5 text-primary" />
+          </div>
+        </EditableItem>
+      ),
+      titleComponent: (
+        <EditableItem
+          id="contact-location-label"
+          path={['contact', 'locationLabel']}
+          type="text"
+          content={{ text: content.contact.locationLabel }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <p className="text-sm font-medium text-muted-foreground">
+            {content.contact.locationLabel}
+          </p>
+        </EditableItem>
+      ),
+      valueComponent: (
+        <EditableItem
+          id="contact-location-value"
+          path={['contact', 'locationValue']}
+          type="text"
+          content={{ text: content.contact.locationValue }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <p className="group-hover:text-primary transition-colors font-medium">
+            {content.contact.locationValue}
+          </p>
+        </EditableItem>
+      ),
+      link: "https://maps.google.com/?q=SHIGS+703+Bl+O+Casa+41+Brasília+DF+70331-715",
     },
     {
-      icon: <Github className="h-5 w-5 text-primary" />,
-      title: "GitHub",
-      value: "github.com/Luca007",
-      link: "https://github.com/Luca007"
+      iconComponent: (
+        <EditableItem
+          id="contact-github-icon"
+          path={['contact', 'icons', 'github']}
+          type="icon"
+          content={{ icon: "Github" }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <div className="bg-primary/10 p-2 rounded-full mr-4 group-hover:bg-primary/20 transition-colors duration-300">
+            <Github className="h-5 w-5 text-primary" />
+          </div>
+        </EditableItem>
+      ),
+      titleComponent: (
+        <EditableItem
+          id="contact-github-label"
+          path={['contact', 'githubLabel']}
+          type="text"
+          content={{ text: content.contact.githubLabel }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <p className="text-sm font-medium text-muted-foreground">
+            {content.contact.githubLabel}
+          </p>
+        </EditableItem>
+      ),
+      valueComponent: (
+        <EditableItem
+          id="contact-github-value"
+          path={['contact', 'githubValue']}
+          type="text"
+          content={{ text: content.contact.githubValue }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <p className="group-hover:text-primary transition-colors font-medium">
+            {content.contact.githubValue}
+          </p>
+        </EditableItem>
+      ),
+      link: content.contact.githubLink,
     },
     {
-      icon: <Linkedin className="h-5 w-5 text-primary" />,
-      title: "LinkedIn",
-      value: "Luca Clerot",
-      link: "https://www.linkedin.com/in/luca-clerot-aviani-10042128a"
-    }
+      iconComponent: (
+        <EditableItem
+          id="contact-linkedin-icon"
+          path={['contact', 'icons', 'linkedin']}
+          type="icon"
+          content={{ icon: "Linkedin" }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <div className="bg-primary/10 p-2 rounded-full mr-4 group-hover:bg-primary/20 transition-colors duration-300">
+            <Linkedin className="h-5 w-5 text-primary" />
+          </div>
+        </EditableItem>
+      ),
+      titleComponent: (
+        <EditableItem
+          id="contact-linkedin-label"
+          path={['contact', 'linkedinLabel']}
+          type="text"
+          content={{ text: content.contact.linkedinLabel }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <p className="text-sm font-medium text-muted-foreground">
+            {content.contact.linkedinLabel}
+          </p>
+        </EditableItem>
+      ),
+      valueComponent: (
+        <EditableItem
+          id="contact-linkedin-value"
+          path={['contact', 'linkedinValue']}
+          type="text"
+          content={{ text: content.contact.linkedinValue }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
+        >
+          <p className="group-hover:text-primary transition-colors font-medium">
+            {content.contact.linkedinValue}
+          </p>
+        </EditableItem>
+      ),
+      link: content.contact.linkedinLink,
+    },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -290,26 +505,46 @@ export default function Contact() {
   return (
     <section id="contact" className="py-20">
       <div className="container">
-        <motion.h2
-          className="section-heading"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+        <EditableItem
+          id="contact-section-title"
+          path={["contact", "title"]}
+          type="heading"
+          content={{ text: content.contact.title }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
         >
-          <span>{content.contact.title}</span>
-          <span></span>
-        </motion.h2>
+          <motion.h2
+            className="section-heading"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <span>{content.contact.title}</span>
+            <span></span>
+          </motion.h2>
+        </EditableItem>
 
-        <motion.p
-          className="text-lg text-muted-foreground mb-12 max-w-3xl mx-auto text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+        <EditableItem
+          id="contact-section-description"
+          path={["contact", "description"]}
+          type="paragraph"
+          content={{ text: content.contact.description }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode && isAdmin}
+          onEdit={handleEdit}
         >
-          {content.contact.description}
-        </motion.p>
+          <motion.p
+            className="text-lg text-muted-foreground mb-12 max-w-3xl mx-auto text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            {content.contact.description}
+          </motion.p>
+        </EditableItem>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <motion.div
@@ -319,6 +554,19 @@ export default function Contact() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
+            <EditableItem
+              id="contact-form-section-title"
+              path={["contact", "formSectionTitle"]}
+              type="heading"
+              content={{ text: content.contact.formSectionTitle }}
+              isAdmin={isAdmin}
+              isEditMode={isEditMode && isAdmin}
+              onEdit={handleEdit}
+            >
+              <h3 className="text-xl font-semibold mb-6 text-primary">
+                {content.contact.formSectionTitle}
+              </h3>
+            </EditableItem>
             <ContactForm
               handleSubmit={handleSubmit}
               formRef={formRef}
@@ -335,7 +583,23 @@ export default function Contact() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <ContactInfoCard contactInfo={contactInfo} />
+            <EditableItem
+              id="contact-info-card-title"
+              path={["contact", "infoTitle"]}
+              type="heading"
+              content={{ text: content.contact.infoTitle }}
+              isAdmin={isAdmin}
+              isEditMode={isEditMode && isAdmin}
+              onEdit={handleEdit}
+            >
+              <h3 className="text-xl font-semibold mb-6 text-primary">
+                {content.contact.infoTitle}
+              </h3>
+            </EditableItem>
+            <ContactInfoCard 
+              contactInfo={contactInfo} 
+              isEditMode={isEditMode && isAdmin} 
+            />
           </motion.div>
         </div>
       </div>

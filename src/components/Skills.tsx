@@ -22,6 +22,9 @@ import {
   Rocket
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { EditableItem } from "@/components/ui/EditableItem";
+import { useEdit } from "@/contexts/EditContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- Types ---
 export interface Skill {
@@ -48,6 +51,12 @@ interface SkillCategoryProps {
   icon: React.ReactNode;
   setHoveredSkill: (name: string | null) => void;
   hoveredSkill: string | null;
+  editableItemProps: {
+    isAdmin: boolean;
+    isEditMode: boolean;
+    onEdit: (id: string, value: any) => void;
+    pathPrefix: string[];
+  };
 }
 
 // Função que mapeia identificadores para componentes de ícone
@@ -181,34 +190,63 @@ const SkillLevel: React.FC<SkillLevelProps> = ({ skill, isHovered }) => {
   );
 };
 
-const SkillCategory: React.FC<SkillCategoryProps> = ({
+const SkillCategory: React.FC<Omit<SkillCategoryProps, 'editableItemProps'> & {
+  isAdmin: boolean;
+  isEditMode: boolean;
+  onEdit: (id: string, path: string[], type: string, content: any) => void;
+  pathPrefix: string[];
+}> = ({
   skills,
   title,
   icon,
   setHoveredSkill,
-  hoveredSkill
+  hoveredSkill,
+  isAdmin,
+  isEditMode,
+  onEdit,
+  pathPrefix
 }) => (
   <div className="space-y-4">
-    <motion.h3
-      className="text-lg sm:text-xl font-semibold flex items-center"
-      variants={{
-        hidden: { y: 20, opacity: 0 },
-        show: { y: 0, opacity: 1, transition: { duration: 0.5 } }
-      }}
+    <EditableItem
+      id={`skill-category-title-${title}`}
+      path={[...pathPrefix.slice(0, 2), 'skillCategories', pathPrefix[1]]}
+      type="heading"
+      content={{ text: title, type: "heading" }}
+      isAdmin={isAdmin}
+      isEditMode={isEditMode}
+      onEdit={onEdit}
     >
-      {icon}
-      <span className="ml-2 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-        {title}
-      </span>
-    </motion.h3>
+      <motion.h3
+        className="text-lg sm:text-xl font-semibold flex items-center"
+        variants={{
+          hidden: { y: 20, opacity: 0 },
+          show: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+        }}
+      >
+        {icon}
+        <span className="ml-2 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+          {title}
+        </span>
+      </motion.h3>
+    </EditableItem>
     <div className="space-y-3 sm:space-y-4">
       {skills.map((skill) => (
-        <SkillCard
+        <EditableItem
           key={skill.name}
-          skill={skill}
-          isHovered={hoveredSkill === skill.name}
-          setHoveredSkill={setHoveredSkill}
-        />
+          id={`skill-${skill.name}`}
+          path={[...pathPrefix, skill.name]}
+          type="skill"
+          content={{ ...skill, type: "skill" }}
+          isAdmin={isAdmin}
+          isEditMode={isEditMode}
+          onEdit={onEdit}
+        >
+          <SkillCard
+            skill={skill}
+            isHovered={hoveredSkill === skill.name}
+            setHoveredSkill={setHoveredSkill}
+          />
+        </EditableItem>
       ))}
     </div>
   </div>
@@ -218,6 +256,8 @@ const SkillCategory: React.FC<SkillCategoryProps> = ({
 export default function Skills() {
   const { content } = useLanguage();
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
+  const { isAdmin } = useAuth();
+  const { isEditMode, handleEdit } = useEdit();
 
   // Extrai e transforma os dados de skills do content
   const programmingSkills: Skill[] = content.skills.programmingSkills
@@ -235,7 +275,6 @@ export default function Skills() {
       {/* Decorative elements */}
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 rounded-full filter blur-xl opacity-40"></div>
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-blue-500/5 rounded-full filter blur-xl opacity-40"></div>
-
       <div className="container relative z-10 px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -243,16 +282,34 @@ export default function Skills() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="section-heading">
-            <span>{content.skills.title}</span>
-            <span></span>
-          </h2>
-
-          <p className="text-base sm:text-lg text-muted-foreground mb-10 sm:mb-16 max-w-3xl mx-auto text-center">
-            {content.skills.description}
-          </p>
+          <EditableItem
+            id="skills-title"
+            path={["skills"]}
+            type="heading"
+            content={{ text: content.skills.title, type: "heading" }}
+            isAdmin={isAdmin}
+            isEditMode={isEditMode}
+            onEdit={handleEdit}
+          >
+            <h2 className="section-heading">
+              <span>{content.skills.title}</span>
+              <span></span>
+            </h2>
+          </EditableItem>
+          <EditableItem
+            id="skills-description"
+            path={["skills"]}
+            type="text"
+            content={{ text: content.skills.description, type: "text" }}
+            isAdmin={isAdmin}
+            isEditMode={isEditMode}
+            onEdit={handleEdit}
+          >
+            <p className="text-base sm:text-lg text-muted-foreground mb-10 sm:mb-16 max-w-3xl mx-auto text-center">
+              {content.skills.description}
+            </p>
+          </EditableItem>
         </motion.div>
-
         <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10">
           <SkillCategory
             skills={programmingSkills}
@@ -260,22 +317,32 @@ export default function Skills() {
             icon={<Code className="mr-2 h-5 w-5 text-primary" />}
             setHoveredSkill={setHoveredSkill}
             hoveredSkill={hoveredSkill}
+            isAdmin={isAdmin}
+            isEditMode={isEditMode}
+            onEdit={handleEdit}
+            pathPrefix={["skills", "programmingSkills"]}
           />
-
           <SkillCategory
             skills={toolsSkills}
             title={content.skills.skillCategories.tools}
             icon={<Server className="mr-2 h-5 w-5 text-primary" />}
             setHoveredSkill={setHoveredSkill}
             hoveredSkill={hoveredSkill}
+            isAdmin={isAdmin}
+            isEditMode={isEditMode}
+            onEdit={handleEdit}
+            pathPrefix={["skills", "toolsSkills"]}
           />
-
           <SkillCategory
             skills={languageSkills}
             title={content.skills.skillCategories.languages}
             icon={<Languages className="mr-2 h-5 w-5 text-primary" />}
             setHoveredSkill={setHoveredSkill}
             hoveredSkill={hoveredSkill}
+            isAdmin={isAdmin}
+            isEditMode={isEditMode}
+            onEdit={handleEdit}
+            pathPrefix={["skills", "languageSkills"]}
           />
         </motion.div>
       </div>

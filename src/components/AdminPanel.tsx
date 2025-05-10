@@ -13,13 +13,19 @@ import {
   getLanguages,
   getFullSection,
   updateFirestoreDocument,
-  ContentItem
+  ContentItem,
+  updateFullContent,
+  getContent
 } from "@/lib/firestore";
 import { Save, Edit, List, Layers, Image, Type, X, Check, RefreshCw } from "lucide-react";
 import { toast } from "./ui/toast";
 import { ScrollArea } from "./ui/scroll-area";
 import { doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Palette, Link as LinkIcon, Image as ImageIcon, Star, ChevronDown } from "lucide-react";
+import { contentMap } from '@/i18n/content';
 
 interface EditableContent {
   id: string;
@@ -68,7 +74,7 @@ interface ItemPreviewProps {
 }
 
 const ItemPreview: React.FC<ItemPreviewProps> = ({ item, id, path, handleEdit }) => {
-  if (id.includes('admin')) return null;
+  if (!id || typeof id !== 'string' || id.includes('admin')) return null;
 
   switch (item.type) {
     case "heading":
@@ -117,140 +123,219 @@ interface EditFormProps {
   hasChanges: (item: any) => boolean;
 }
 
+const ICON_OPTIONS = [
+  { name: "Star", icon: <Star size={18} /> },
+  { name: "Image", icon: <ImageIcon size={18} /> },
+  { name: "Link", icon: <LinkIcon size={18} /> },
+  { name: "Check", icon: <Check size={18} /> },
+  { name: "Type", icon: <Type size={18} /> },
+];
+
 const EditForm: React.FC<EditFormProps> = ({ selectedItem, handleContentChange, editedContent, setEditedContent, setSelectedItem, hasChanges }) => {
   if (!selectedItem) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-6 text-center text-muted-foreground">
         <Layers size={48} className="mb-4 opacity-20" />
-        <h3 className="text-lg font-medium mb-2">No item selected</h3>
-        <p className="text-sm">Click on an item from the left panel to edit its content.</p>
+        <h3 className="text-lg font-medium mb-2">Nenhum item selecionado</h3>
+        <p className="text-sm">Clique em um item à esquerda para editar seu conteúdo.</p>
       </div>
     );
   }
 
   const hasItemChanges = hasChanges(selectedItem);
 
-  return (
-    <div className="p-4 h-full overflow-auto">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          {selectedItem.type === "heading" && <Type size={18} />}
-          {selectedItem.type === "text" && <Type size={18} />}
-          {selectedItem.type === "paragraph" && <List size={18} />}
-          {selectedItem.type === "image" && <Image size={18} />}
-          Edit {selectedItem.type}
-        </h3>
-        <div className="flex gap-2">
-          {hasItemChanges && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                const updatedContent = editedContent.map(item =>
-                  item.id === selectedItem.id &&
-                  JSON.stringify(item.path) === JSON.stringify(selectedItem.path)
-                    ? { ...item, content: { ...item.originalContent } }
-                    : item
-                );
-
-                setEditedContent(updatedContent);
-                setSelectedItem({
-                  ...selectedItem,
-                  content: { ...selectedItem.originalContent }
-                });
-              }}
-            >
-              <X size={14} className="mr-1" />
-              Reset
-            </Button>
-          )}
-        </div>
+  // Renderiza campo de seleção de ícone se houver campo 'icon' ou 'iconName'
+  const renderIconSelector = (iconValue: string) => (
+    <div className="flex flex-col gap-1">
+      <Label>Ícone</Label>
+      <div className="flex items-center gap-2">
+        <select
+          className="border rounded px-2 py-1 bg-background"
+          value={iconValue || ''}
+          onChange={e => handleContentChange('icon', e.target.value)}
+        >
+          <option value="">Nenhum</option>
+          {ICON_OPTIONS.map(opt => (
+            <option key={opt.name} value={opt.name}>{opt.name}</option>
+          ))}
+        </select>
+        <span className="ml-2">{ICON_OPTIONS.find(opt => opt.name === iconValue)?.icon}</span>
       </div>
+    </div>
+  );
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  // Renderiza campo de cor se houver campo 'color'
+  const renderColorPicker = (colorValue: string) => (
+    <div className="flex flex-col gap-1">
+      <Label>Cor</Label>
+      <input
+        type="color"
+        value={colorValue || '#000000'}
+        onChange={e => handleContentChange('color', e.target.value)}
+        className="w-10 h-8 p-0 border-none bg-transparent cursor-pointer"
+        title="Escolha uma cor"
+      />
+    </div>
+  );
+
+  // Renderiza campo de link se houver campo 'link' ou 'url'
+  const renderLinkInput = (linkValue: string) => (
+    <div className="flex flex-col gap-1">
+      <Label>Link</Label>
+      <Input
+        type="url"
+        placeholder="https://..."
+        value={linkValue || ''}
+        onChange={e => handleContentChange('link', e.target.value)}
+      />
+    </div>
+  );
+
+  return (
+    <TooltipProvider>
+      <div className="p-4 h-full overflow-auto flex flex-col gap-6">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            {selectedItem.type === "heading" && <Type size={18} />}
+            {selectedItem.type === "text" && <Type size={18} />}
+            {selectedItem.type === "paragraph" && <List size={18} />}
+            {selectedItem.type === "image" && <Image size={18} />}
+            Editar {selectedItem.type}
+          </h3>
+          <div className="flex gap-2">
+            {hasItemChanges && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const updatedContent = editedContent.map(item =>
+                        item.id === selectedItem.id &&
+                        JSON.stringify(item.path) === JSON.stringify(selectedItem.path)
+                          ? { ...item, content: { ...item.originalContent } }
+                          : item
+                      );
+                      setEditedContent(updatedContent);
+                      setSelectedItem({
+                        ...selectedItem,
+                        content: { ...selectedItem.originalContent }
+                      });
+                    }}
+                  >
+                    <X size={14} className="mr-1" />
+                    Resetar
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Desfazer todas as alterações deste item</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        </div>
+
         <div className="space-y-4 bg-card p-4 rounded-lg border border-border/30">
-          <h4 className="text-sm uppercase tracking-wide text-muted-foreground font-medium mb-2">Edit Content</h4>
+          <h4 className="text-sm uppercase tracking-wide text-muted-foreground font-medium mb-2">Editar Conteúdo</h4>
 
-          {selectedItem.type === "heading" || selectedItem.type === "text" || selectedItem.type === "button" || selectedItem.type === "label" ? (
+          {/* Campos padrão intuitivos */}
+          {(selectedItem.type === "heading" || selectedItem.type === "text" || selectedItem.type === "button" || selectedItem.type === "label") && (
             <div>
-              <Label htmlFor="text">Text Content</Label>
+              <Label htmlFor="text">Texto</Label>
               <Input
                 id="text"
+                placeholder="Digite o texto..."
                 value={selectedItem.content.text || ""}
                 onChange={(e) => handleContentChange("text", e.target.value)}
                 className="mt-1"
               />
             </div>
-          ) : selectedItem.type === "paragraph" ? (
+          )}
+          {selectedItem.type === "paragraph" && (
             <div>
-              <Label htmlFor="text">Paragraph Content</Label>
+              <Label htmlFor="text">Parágrafo</Label>
               <Textarea
                 id="text"
+                placeholder="Digite o parágrafo..."
                 value={selectedItem.content.text || ""}
                 onChange={(e) => handleContentChange("text", e.target.value)}
                 className="mt-1 min-h-[120px]"
               />
             </div>
-          ) : (
-            Object.entries(selectedItem.content)
-              .filter(([key]) => ![
-                "id",
-                "type",
-                "updatedAt",
-                "order",
-                "createdAt"
-              ].includes(key))
-              .map(([key, value]) => (
-                <div key={key}>
-                  <Label htmlFor={key}>{key.charAt(0).toUpperCase() + key.slice(1)}</Label>
-                  {typeof value === "string" ? (
-                    value.length > 80 ? (
-                      <Textarea
+          )}
+
+          {/* Campos dinâmicos intuitivos */}
+          {Object.entries(selectedItem.content)
+            .filter(([key]) => !["id", "type", "updatedAt", "order", "createdAt", "text"].includes(key))
+            .map(([key, value]) => (
+              <div key={key} className="flex flex-col gap-1">
+                {key.toLowerCase().includes("icon") && renderIconSelector(String(value))}
+                {key.toLowerCase().includes("color") && renderColorPicker(String(value))}
+                {(key.toLowerCase().includes("link") || key.toLowerCase().includes("url")) && renderLinkInput(String(value))}
+                {/* Fallback para outros campos string/number */}
+                {!key.toLowerCase().includes("icon") && !key.toLowerCase().includes("color") && !key.toLowerCase().includes("link") && !key.toLowerCase().includes("url") && (
+                  <>
+                    <Label htmlFor={key}>{key.charAt(0).toUpperCase() + key.slice(1)}</Label>
+                    {typeof value === "string" ? (
+                      value.length > 80 ? (
+                        <Textarea
+                          id={key}
+                          placeholder={`Digite o valor de ${key}...`}
+                          value={value as string}
+                          onChange={(e) => handleContentChange(key, e.target.value)}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <Input
+                          id={key}
+                          placeholder={`Digite o valor de ${key}...`}
+                          value={value as string}
+                          onChange={(e) => handleContentChange(key, e.target.value)}
+                          className="mt-1"
+                        />
+                      )
+                    ) : typeof value === "number" ? (
+                      <Input
                         id={key}
-                        value={value as string}
+                        type="number"
+                        value={value}
                         onChange={(e) => handleContentChange(key, e.target.value)}
                         className="mt-1"
                       />
                     ) : (
-                      <Input
-                        id={key}
-                        value={value as string}
-                        onChange={(e) => handleContentChange(key, e.target.value)}
-                        className="mt-1"
-                      />
-                    )
-                  ) : (
-                    <div className="text-sm text-muted-foreground mt-1 p-2 bg-muted/30 rounded">
-                      Cannot edit this field type directly
-                    </div>
-                  )}
-                </div>
-              ))
-          )}
+                      <div className="text-sm text-muted-foreground mt-1 p-2 bg-muted/30 rounded">
+                        Não é possível editar este campo diretamente
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
 
           {hasItemChanges && (
             <div className="bg-primary/10 text-primary p-3 rounded-md text-sm mt-4">
-              This item has unsaved changes.
+              Este item possui alterações não salvas.
             </div>
           )}
         </div>
 
         <div className="bg-card p-4 rounded-lg border border-border/30">
-          <h4 className="text-sm uppercase tracking-wide text-muted-foreground font-medium mb-4">Preview</h4>
-
-          <div className="bg-background/50 p-4 rounded-md min-h-[200px] border border-border/20">
+          <h4 className="text-sm uppercase tracking-wide text-muted-foreground font-medium mb-4">Pré-visualização</h4>
+          <div className="bg-background/50 p-4 rounded-md min-h-[200px] border border-border/20 flex flex-col gap-2">
+            {selectedItem.content.icon && (
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">Ícone selecionado:</span>
+                {ICON_OPTIONS.find(opt => opt.name === selectedItem.content.icon)?.icon}
+              </div>
+            )}
             {selectedItem.type === "heading" && (
               <div className="preview-heading">
                 <h2 className="text-2xl font-bold text-foreground">{selectedItem.content.text || "Heading text"}</h2>
               </div>
             )}
-
             {selectedItem.type === "text" && (
               <div className="preview-text">
                 <p className="text-base text-foreground">{selectedItem.content.text || "Text content"}</p>
               </div>
             )}
-
             {selectedItem.type === "paragraph" && (
               <div className="preview-paragraph">
                 <p className="text-base text-muted-foreground leading-relaxed">
@@ -258,22 +343,34 @@ const EditForm: React.FC<EditFormProps> = ({ selectedItem, handleContentChange, 
                 </p>
               </div>
             )}
-
             {selectedItem.type === "button" && (
               <div className="preview-button">
-                <Button>{selectedItem.content.text || "Button"}</Button>
+                <Button style={{ background: selectedItem.content.color || undefined }}>
+                  {selectedItem.content.icon && ICON_OPTIONS.find(opt => opt.name === selectedItem.content.icon)?.icon}
+                  {selectedItem.content.text || "Button"}
+                </Button>
               </div>
             )}
-
             {selectedItem.type === "label" && (
               <div className="preview-label">
                 <Label>{selectedItem.content.text || "Label"}</Label>
               </div>
             )}
-
+            {selectedItem.content.link && (
+              <div className="flex items-center gap-2 mt-2">
+                <LinkIcon size={16} />
+                <a href={selectedItem.content.link} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">{selectedItem.content.link}</a>
+              </div>
+            )}
+            {selectedItem.content.color && (
+              <div className="flex items-center gap-2 mt-2">
+                <Palette size={16} />
+                <span style={{ color: selectedItem.content.color }}>{selectedItem.content.color}</span>
+              </div>
+            )}
             {!["heading", "text", "paragraph", "button", "label"].includes(selectedItem.type) && (
               <div className="preview-generic">
-                <p className="text-muted-foreground text-sm mb-2">Preview for {selectedItem.type}:</p>
+                <p className="text-muted-foreground text-sm mb-2">Pré-visualização para {selectedItem.type}:</p>
                 <div className="bg-muted/20 p-3 rounded border border-border/20">
                   {selectedItem.content.title && (
                     <h3 className="text-lg font-medium mb-1">{selectedItem.content.title}</h3>
@@ -291,13 +388,12 @@ const EditForm: React.FC<EditFormProps> = ({ selectedItem, handleContentChange, 
               </div>
             )}
           </div>
-
           <div className="mt-4 text-xs text-muted-foreground">
-            <p>This preview shows an approximation of how this content will appear on the site.</p>
+            <p>Esta pré-visualização mostra como o conteúdo aparecerá no site.</p>
           </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
@@ -311,6 +407,7 @@ export default function AdminPanel(): JSX.Element | null {
   const [sectionData, setSectionData] = useState<any>(null);
   const [editedContent, setEditedContent] = useState<any[]>([]);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
 
   const sections: Section[] = [
     { id: "home", label: "Home" },
@@ -380,13 +477,76 @@ export default function AdminPanel(): JSX.Element | null {
     };
   }, [currentSection]);
 
+  // Robust prioritized section data loader: localStorage > Firebase > content.ts
   const loadSectionData = async (sectionId: string) => {
     try {
       setIsLoading(true);
       setCurrentSection(sectionId);
-
-      const data = await getFullSection(currentLanguage.code, sectionId);
-      setSectionData(data);
+      const code = currentLanguage.code;
+      const localDataKey = `content_${code}`;
+      const localTsKey = `content_updatedAt_${code}`;
+      const localData = localStorage.getItem(localDataKey);
+      const localTs = localStorage.getItem(localTsKey);
+      const localTimestamp = localTs ? parseInt(localTs) : 0;
+      let section = null;
+      let fb = null;
+      let fbUpdatedAt = 0;
+      let fbValid = false;
+      try {
+        // Try Firebase
+        fb = await getFullSection(code, sectionId);
+        // Try to get updatedAt from Firestore content doc
+        const contentDoc = await getContent(code);
+        fbUpdatedAt = contentDoc?.updatedAt || 0;
+        // Validate Firebase data: must be non-empty object/array
+        fbValid = fb && ((Array.isArray(fb) && fb.length > 0) || (typeof fb === 'object' && fb !== null && Object.keys(fb).length > 0));
+      } catch (e) {
+        fb = null;
+        fbUpdatedAt = 0;
+        fbValid = false;
+      }
+      // Try localStorage if up-to-date and valid
+      let localSection = null;
+      if (localData && localTimestamp && fbValid && localTimestamp >= fbUpdatedAt) {
+        try {
+          const parsed: Record<string, any> = JSON.parse(localData);
+          localSection = parsed[sectionId];
+          if (localSection && (Array.isArray(localSection) ? localSection.length > 0 : typeof localSection === 'object' && Object.keys(localSection).length > 0)) {
+            section = localSection;
+          }
+        } catch (e) {
+          section = null;
+        }
+      }
+      // If localStorage is not valid, use Firebase if valid
+      if (!section && fbValid) {
+        section = fb;
+        // Update localStorage with latest Firebase data
+        let allData: Record<string, any> = {};
+        try {
+          allData = localData ? JSON.parse(localData) : {};
+        } catch (e) {
+          allData = {};
+        }
+        allData[sectionId] = fb;
+        localStorage.setItem(localDataKey, JSON.stringify(allData));
+        localStorage.setItem(localTsKey, Date.now().toString());
+      }
+      // Fallback to static content if needed
+      if (!section) {
+        try {
+          // Use type assertion to allow dynamic access
+          const staticContent = (contentMap[code] as any)?.[sectionId];
+          if (staticContent && (Array.isArray(staticContent) ? staticContent.length > 0 : typeof staticContent === 'object' && Object.keys(staticContent).length > 0)) {
+            section = staticContent;
+          } else {
+            section = {};
+          }
+        } catch (e) {
+          section = {};
+        }
+      }
+      setSectionData(section);
       setEditedContent([]);
       setSelectedItem(null);
     } catch (error) {
@@ -448,11 +608,26 @@ export default function AdminPanel(): JSX.Element | null {
     setEditedContent(updatedContent);
   };
 
+  const syncToFirebase = async () => {
+    setSyncStatus('syncing');
+    try {
+      const localData = localStorage.getItem(`content_${currentLanguage.code}`);
+      if (localData) {
+        await updateFullContent(currentLanguage.code, JSON.parse(localData));
+        setSyncStatus('success');
+        toast({ title: 'Alterações salvas no Firebase!' });
+      }
+    } catch (e) {
+      setSyncStatus('error');
+      toast({ title: 'Erro ao sincronizar com o Firebase', variant: 'destructive' });
+    } finally {
+      setTimeout(() => setSyncStatus('idle'), 2000);
+    }
+  };
+
   const saveChanges = async () => {
     if (editedContent.length === 0) return;
-
     setIsSaving(true);
-
     try {
       for (const item of editedContent) {
         if (JSON.stringify(item.content) !== JSON.stringify(item.originalContent)) {
@@ -463,9 +638,8 @@ export default function AdminPanel(): JSX.Element | null {
           }
         }
       }
-
       await loadSectionData(currentSection);
-
+      await syncToFirebase(); // Sincroniza imediatamente ao salvar
       toast({
         title: "Success",
         description: "Content updated successfully",
@@ -473,6 +647,7 @@ export default function AdminPanel(): JSX.Element | null {
       });
     } catch (error) {
       console.error("Error saving changes:", error);
+      setSyncStatus('error');
       toast({
         title: "Error",
         description: "Failed to save changes. Please try again.",
@@ -487,12 +662,35 @@ export default function AdminPanel(): JSX.Element | null {
     return JSON.stringify(item.content) !== JSON.stringify(item.originalContent);
   };
 
+  // Adiciona funções utilitárias para drag-and-drop
+  function reorder<T>(list: T[], startIndex: number, endIndex: number): T[] {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    return result;
+  }
+
+  // Função para salvar alterações no localStorage instantaneamente
+  const saveToLocalStorage = (langCode: string, data: any) => {
+    const ts = Date.now();
+    localStorage.setItem(`content_${langCode}`, JSON.stringify(data));
+    localStorage.setItem(`content_updatedAt_${langCode}`, ts.toString());
+  };
+
+  // Sempre que sectionData mudar, salva no localStorage (mas não envia para o Firebase automaticamente)
+  useEffect(() => {
+    if (isAdmin && isOpen && sectionData) {
+      saveToLocalStorage(currentLanguage.code, sectionData);
+    }
+  }, [sectionData, isAdmin, isOpen, currentLanguage.code]);
+
   if (!isAdmin) return null;
 
   return (
     <div>
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent side="right" className="w-[90vw] sm:w-[85vw] md:w-[80vw] lg:w-[75vw] p-0 border-l border-border/20" style={{ top: '50dvh' }}>
+        <SheetContent side="right" className="w-[80vw] max-w-[300px] p-0 flex flex-col" aria-describedby="adminpanel-desc">
+          <p id="adminpanel-desc" className="sr-only">Editor de conteúdo do portfólio</p>
           <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
             <div className="lg:col-span-1 border-r border-border/20 h-full flex flex-col">
               <SheetHeader className="p-4 border-b border-border/20">
@@ -510,12 +708,22 @@ export default function AdminPanel(): JSX.Element | null {
               />
 
               <div className="flex-1 overflow-hidden">
-                {sections.map(section => (
-                  <TabsContent
-                    key={section.id}
-                    value={section.id}
-                    className="h-full m-0 p-0"
-                  >
+                <Tabs value={currentSection} onValueChange={loadSectionData} className="flex flex-col h-full">
+                  <div className="p-4 border-b border-border/20">
+                    <TabsList className="w-full h-auto flex flex-wrap gap-1">
+                      {sections.map((section: Section) => (
+                        <TabsTrigger
+                          key={section.id}
+                          value={section.id}
+                          disabled={isLoading}
+                          className="flex-1 min-w-[80px]"
+                        >
+                          {section.label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </div>
+                  <TabsContent value={currentSection} className="h-full m-0 p-0">
                     {isLoading ? (
                       <div className="flex items-center justify-center h-full">
                         <RefreshCw size={20} className="animate-spin mr-2" />
@@ -524,45 +732,127 @@ export default function AdminPanel(): JSX.Element | null {
                     ) : sectionData ? (
                       <ScrollArea className="h-[calc(100vh-220px)]">
                         <div className="p-4 space-y-2">
+                          {/* Renderiza itens únicos (não array) com drag-and-drop individual se necessário */}
                           {Object.entries(sectionData)
                             .filter(([key, value]) =>
                               typeof value === "object" &&
                               !Array.isArray(value) &&
                               "type" in (value as any)
                             )
-                            .map(([key, value]) =>
-                              <ItemPreview
-                                key={key}
-                                item={value}
-                                id={key}
-                                path={[]}
-                                handleEdit={handleEdit}
-                              />
-                            )
-                          }
-
+                            .map(([key, value]) => (
+                              <div key={key} className="mb-4">
+                                <ItemPreview
+                                  item={value}
+                                  id={key}
+                                  path={[]}
+                                  handleEdit={handleEdit}
+                                />
+                              </div>
+                            ))}
+                          {/* Renderiza arrays com drag-and-drop e edição exclusiva por seção */}
                           {Object.entries(sectionData)
-                            .filter(([key, value]) =>
-                              Array.isArray(value) &&
-                              value.length > 0
-                            )
+                            .filter(([key, value]) => Array.isArray(value) && value.length > 0)
                             .map(([subKey, subItems]) => (
                               <div key={subKey} className="mt-4 pt-4 border-t border-border/10">
-                                <h4 className="text-sm font-medium mb-2 text-muted-foreground">{subKey}</h4>
-                                <div className="space-y-2">
-                                  {(subItems as any[]).map((item) =>
-                                    <ItemPreview
-                                      key={item.id}
-                                      item={item}
-                                      id={item.id}
-                                      path={[subKey]}
-                                      handleEdit={handleEdit}
-                                    />
-                                  )}
-                                </div>
+                                <h4 className="text-sm font-medium mb-2 text-muted-foreground flex items-center justify-between">
+                                  {subKey}
+                                  <Button size="sm" variant="outline" onClick={() => {
+                                    // Adiciona novo item padrão para a seção
+                                    const newItem = {
+                                      id: `new_${Date.now()}`,
+                                      type: "text",
+                                      text: "Novo item",
+                                    };
+                                    const updated = Array.isArray(sectionData[subKey]) ? [...sectionData[subKey], newItem] : [newItem];
+                                    setSectionData({ ...sectionData, [subKey]: updated });
+                                    setEditedContent([...editedContent, {
+                                      id: newItem.id,
+                                      path: [subKey],
+                                      type: newItem.type,
+                                      content: newItem,
+                                      originalContent: {},
+                                    }]);
+                                  }}>
+                                    + Adicionar
+                                  </Button>
+                                </h4>
+                                <DragDropContext
+                                  onDragEnd={(result: DropResult) => {
+                                    if (!result.destination) return;
+                                    if (result.source.index === result.destination.index) return;
+                                    const items = reorder(
+                                      sectionData[subKey],
+                                      result.source.index,
+                                      result.destination.index
+                                    );
+                                    setSectionData({ ...sectionData, [subKey]: items });
+                                    // Marca todos como editados para persistir ordem
+                                    setEditedContent([
+                                      ...editedContent.filter(e => e.path[0] !== subKey),
+                                      ...items.map((item: any, idx: number) => ({
+                                        id: item.id,
+                                        path: [subKey],
+                                        type: item.type,
+                                        content: { ...item, order: idx },
+                                        originalContent: item,
+                                      }))
+                                    ]);
+                                  }}
+                                >
+                                  <Droppable droppableId={subKey} isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
+                                    {(provided) => (
+                                      <div ref={provided.innerRef} {...provided.droppableProps}>
+                                        {Array.isArray(subItems) && subItems.length > 0 &&
+                                          subItems.map((item, idx) => (
+                                            <Draggable key={item.id || idx} draggableId={String(item.id || idx)} index={idx}>
+                                              {(provided, snapshot) => (
+                                                <div
+                                                  ref={provided.innerRef}
+                                                  {...provided.draggableProps}
+                                                  {...provided.dragHandleProps}
+                                                  className={`relative group ${snapshot.isDragging ? 'bg-muted/40' : ''}`}
+                                                >
+                                                  <ItemPreview
+                                                    item={item}
+                                                    id={item.id}
+                                                    path={[subKey]}
+                                                    handleEdit={handleEdit}
+                                                  />
+                                                  <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100"
+                                                    onClick={() => {
+                                                      // Remove item
+                                                      const updated = sectionData[subKey].filter((i: any) => i.id !== item.id);
+                                                      setSectionData({ ...sectionData, [subKey]: updated });
+                                                      setEditedContent([
+                                                        ...editedContent,
+                                                        {
+                                                          id: item.id,
+                                                          path: [subKey],
+                                                          type: item.type,
+                                                          content: null,
+                                                          originalContent: item,
+                                                          deleted: true,
+                                                        }
+                                                      ]);
+                                                    }}
+                                                    title="Remover"
+                                                  >
+                                                    <X size={14} />
+                                                  </Button>
+                                                </div>
+                                              )}
+                                            </Draggable>
+                                          ))}
+                                        {provided.placeholder}
+                                      </div>
+                                    )}
+                                  </Droppable>
+                                </DragDropContext>
                               </div>
-                            ))
-                          }
+                            ))}
                         </div>
                       </ScrollArea>
                     ) : (
@@ -571,27 +861,33 @@ export default function AdminPanel(): JSX.Element | null {
                       </div>
                     )}
                   </TabsContent>
-                ))}
+                </Tabs>
               </div>
 
-              <div className="p-4 border-t border-border/20">
+              <div className="p-4 border-t border-border/20 flex flex-col gap-2">
                 <Button
                   onClick={saveChanges}
-                  disabled={isLoading || isSaving || editedContent.length === 0}
+                  disabled={isLoading || isSaving || editedContent.length === 0 || syncStatus === 'syncing'}
                   className="w-full"
                 >
-                  {isSaving ? (
+                  {isSaving || syncStatus === 'syncing' ? (
                     <>
                       <RefreshCw size={16} className="mr-2 animate-spin" />
-                      Saving...
+                      Salvando...
                     </>
                   ) : (
                     <>
                       <Save size={16} className="mr-2" />
-                      Save Changes {editedContent.length > 0 && `(${editedContent.filter(hasChanges).length})`}
+                      Salvar Alterações {editedContent.length > 0 && `(${editedContent.filter(hasChanges).length})`}
                     </>
                   )}
                 </Button>
+                {syncStatus === 'success' && (
+                  <div className="text-green-600 text-xs flex items-center gap-1"><Check size={14}/> Sincronizado com o Firebase</div>
+                )}
+                {syncStatus === 'error' && (
+                  <div className="text-red-600 text-xs flex items-center gap-1"><X size={14}/> Erro ao sincronizar</div>
+                )}
               </div>
             </div>
 

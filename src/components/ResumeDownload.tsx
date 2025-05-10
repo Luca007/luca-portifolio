@@ -7,8 +7,16 @@ import { FileDown, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import generateResumePDF from "@/lib/pdfGenerator";
 import { toast } from "@/components/ui/toast";
+import { EditableItem } from "@/components/ui/EditableItem";
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import { useEdit } from "@/contexts/EditContext"; // Import useEdit
 
-export default function ResumeDownload() {
+interface ResumeDownloadProps {
+	isAdmin: boolean;
+	isEditMode: boolean;
+}
+
+export default function ResumeDownload({ isAdmin, isEditMode }: ResumeDownloadProps) {
 	const { content, currentLanguage } = useLanguage();
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -67,30 +75,53 @@ export default function ResumeDownload() {
 			transition={{ duration: 0.5 }}
 			className="flex flex-col items-center"
 		>
-			<Button
-				onClick={handleDownload}
-				disabled={isLoading}
-				className="relative overflow-hidden group bg-gradient-to-r from-primary/90 to-blue-600/90 hover:from-blue-600/90 hover:to-primary/90 transition-all duration-500 text-white shadow-md hover:shadow-xl shadow-primary/20 hover:shadow-primary/40 rounded-lg px-6 py-6"
+			<EditableItem
+				id="resume-download-btn"
+				path={["resume"]}
+				type="text"
+				content={{
+					text: isLoading
+						? content.resume.downloading
+						: content.resume.download,
+					type: "text",
+				}}
+				isAdmin={isAdmin}
+				isEditMode={isEditMode && isAdmin}
+				onEdit={() => {}}
 			>
-				<span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
-
-				<span className="flex items-center justify-center">
-					{isLoading ? (
-						<Loader2 className="w-5 h-5 mr-2 animate-spin" />
-					) : (
-						<FileDown className="w-5 h-5 mr-2" />
-					)}
-					<span>
-						{isLoading
-							? content.resume.downloading
-							: content.resume.download}
+				<Button
+					onClick={handleDownload}
+					disabled={isLoading}
+					className="relative overflow-hidden group bg-gradient-to-r from-primary/90 to-blue-600/90 hover:from-blue-600/90 hover:to-primary/90 transition-all duration-500 text-white shadow-md hover:shadow-xl shadow-primary/20 hover:shadow-primary/40 rounded-lg px-6 py-6"
+				>
+					<span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
+					<span className="flex items-center justify-center">
+						{isLoading ? (
+							<Loader2 className="w-5 h-5 mr-2 animate-spin" />
+						) : (
+							<FileDown className="w-5 h-5 mr-2" />
+						)}
+						<span>
+							{isLoading
+								? content.resume.downloading
+								: content.resume.download}
+						</span>
 					</span>
-				</span>
-			</Button>
-
-			<p className="text-sm text-muted-foreground mt-2 text-center max-w-xs">
-				{content.resume.description}
-			</p>
+				</Button>
+			</EditableItem>
+			<EditableItem
+				id="resume-download-description"
+				path={["resume"]}
+				type="text"
+				content={{ text: content.resume.description, type: "text" }}
+				isAdmin={isAdmin}
+				isEditMode={isEditMode && isAdmin}
+				onEdit={() => {}}
+			>
+				<p className="text-sm text-muted-foreground mt-2 text-center max-w-xs">
+					{content.resume.description}
+				</p>
+			</EditableItem>
 		</motion.div>
 	);
 }

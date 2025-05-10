@@ -177,3 +177,15 @@ export const isAdmin = (): boolean => {
   // Returns true if a user is logged in, false otherwise.
   return !!user;
 };
+
+// Atualiza o conteúdo inteiro de um idioma na coleção 'content'
+export const updateFullContent = async (
+  langCode: string,
+  data: any
+): Promise<void> => {
+  const contentRef = doc(db, 'content', langCode);
+  await setDoc(contentRef, {
+    dataJson: JSON.stringify(data),
+    updatedAt: serverTimestamp(),
+  });
+};

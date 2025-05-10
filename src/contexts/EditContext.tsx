@@ -74,15 +74,21 @@ export const EditProvider = ({ children }: { children: ReactNode }) => {
 
   // Function to handle editing an item
   const handleEdit = (id: string, path: string[], type: string, content: any) => {
+    console.log('[EditContext] handleEdit called:', { id, path, type, content }); // Added logging
     // Register item as edited
     registerEditedItem(id);
 
     // Dispatch an event to notify the AdminPanel
-    window.dispatchEvent(
-      new CustomEvent('edit-item', {
-        detail: { id, path, type, content }
-      })
-    );
+    try {
+      window.dispatchEvent(
+        new CustomEvent('edit-item', {
+          detail: { id, path, type, content }
+        })
+      );
+      console.log('[EditContext] \'edit-item\' event dispatched successfully.'); // Added success log
+    } catch (error) {
+      console.error('[EditContext] Error dispatching \'edit-item\' event:', error); // Added error logging
+    }
   };
 
   // Only provide edit capabilities if user is admin

@@ -20,6 +20,9 @@ import { Input } from "@/components/ui/input";
 import { imageConfig, throttle } from "@/lib/utils";
 import { LucideProps, LucideIcon } from "lucide-react"; // Import LucideIcon
 import { Dispatch, SetStateAction } from "react"; // Import types
+import { EditableItem } from "@/components/ui/EditableItem";
+import { useEdit } from "@/contexts/EditContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- Interfaces ---
 interface Project {
@@ -186,6 +189,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, setSelectedTag }) =>
 // --- Projects Component ---
 const Projects: React.FC = () => {
   const { content } = useLanguage();
+  const { isAdmin } = useAuth();
+  const { isEditMode, handleEdit } = useEdit();
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
@@ -285,7 +290,6 @@ const Projects: React.FC = () => {
       {/* Decorative elements */}
       <div className="absolute top-0 right-0 w-1/4 h-1/4 bg-primary/5 rounded-full filter blur-3xl opacity-70"></div>
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-blue-500/5 rounded-full filter blur-3xl opacity-70"></div>
-
       <div className="container relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -294,14 +298,33 @@ const Projects: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="mb-12"
         >
-          <h2 className="section-heading">
-            <span>{content.projects.title}</span>
-            <span></span>
-          </h2>
-
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto text-center">
-            {content.projects.description}
-          </p>
+          <EditableItem
+            id="projects-title"
+            path={["projects"]}
+            type="heading"
+            content={{ text: content.projects.title, type: "heading" }}
+            isAdmin={isAdmin}
+            isEditMode={isEditMode}
+            onEdit={handleEdit}
+          >
+            <h2 className="section-heading">
+              <span>{content.projects.title}</span>
+              <span></span>
+            </h2>
+          </EditableItem>
+          <EditableItem
+            id="projects-description"
+            path={["projects"]}
+            type="text"
+            content={{ text: content.projects.description, type: "text" }}
+            isAdmin={isAdmin}
+            isEditMode={isEditMode}
+            onEdit={handleEdit}
+          >
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto text-center">
+              {content.projects.description}
+            </p>
+          </EditableItem>
         </motion.div>
 
         {/* Filter controls */}
@@ -412,131 +435,129 @@ const Projects: React.FC = () => {
           >
             <AnimatePresence>
               {filteredProjects.map((project, index) => {
-                const displayedTopics = project.topics.filter(
-                  (topic) => topic.toLowerCase() !== project.language.toLowerCase() && topic.toLowerCase() !== "web"
-                );
-
                 // Seleciona o ícone da linguagem dinamicamente
                 const langKey = project.language.toLowerCase();
                 const LanguageIcon = languageIcons[langKey] || languageIcons['n/a'];
-
-                // *** Add logging here ***
-                console.log(`Rendering project: ${project.name}, Image URL: ${project.imageUrl}`);
-
+                const displayedTopics = project.topics.filter(
+                  (topic) => topic.toLowerCase() !== project.language.toLowerCase() && topic.toLowerCase() !== "web"
+                );
                 return (
-                  <motion.div
-                    layout
+                  <EditableItem
                     key={project.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    transition={{
-                      duration: 0.3,
-                      layout: { duration: 0.6, type: "spring", damping: 30, stiffness: 200 }
-                    }}
-                    whileHover={{ y: -5 }}
-                    className="h-full"
+                    id={`project-${project.id}`}
+                    path={["projects", "items", String(index)]}
+                    type="project"
+                    content={project}
+                    isAdmin={isAdmin}
+                    isEditMode={isEditMode}
+                    onEdit={handleEdit}
                   >
-                    <Card className="overflow-hidden bg-gradient-to-br from-background to-background/90 border border-border/30 hover:border-primary/20 transition-all hover:shadow-xl shadow-lg shadow-black/5 hover:shadow-primary/5 h-full flex flex-col">
-                      <div className="relative h-48 overflow-hidden">
-                        <Image
-                          src={project.imageUrl} // Ensure this is correct
-                          alt={project.name}
-                          fill
-                          sizes={imageConfig.getOptimalSizes()}
-                          className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                          {...imageConfig.defaultImageProps}
-                          // Add onError for debugging image loading issues
-                          onError={(e) => console.error(`Image failed to load: ${project.imageUrl}`, e)}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-70"></div>
-
-                        {/* Language and Web badge */}
-                        <div className="absolute top-3 left-3 bg-background/80 backdrop-blur-sm border border-border/40 px-2 py-1 rounded-md flex flex-col items-start space-y-1">
-                          <div className="flex items-center">
-                            <LanguageIcon className="h-3 w-3 mr-1 text-primary" /> {/* Ícone dinâmico */}
-                            <span className="text-xs font-medium">{project.language}</span>
-                          </div>
-                          {project.hasDemo && (
+                    <motion.div
+                      layout
+                      key={project.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{
+                        duration: 0.3,
+                        layout: { duration: 0.6, type: "spring", damping: 30, stiffness: 200 }
+                      }}
+                      whileHover={{ y: -5 }}
+                      className="h-full"
+                    >
+                      <Card className="overflow-hidden bg-gradient-to-br from-background to-background/90 border border-border/30 hover:border-primary/20 transition-all hover:shadow-xl shadow-lg shadow-black/5 hover:shadow-primary/5 h-full flex flex-col">
+                        <div className="relative h-48 overflow-hidden">
+                          <Image
+                            src={project.imageUrl}
+                            alt={project.name}
+                            fill
+                            sizes={imageConfig.getOptimalSizes()}
+                            className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                            {...imageConfig.defaultImageProps}
+                            onError={(e) => console.error(`Image failed to load: ${project.imageUrl}`, e)}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-70"></div>
+                          {/* Language and Web badge */}
+                          <div className="absolute top-3 left-3 bg-background/80 backdrop-blur-sm border border-border/40 px-2 py-1 rounded-md flex flex-col items-start space-y-1">
                             <div className="flex items-center">
-                              <Globe className="h-3 w-3 mr-1 text-primary" />
-                              <span className="text-xs font-medium">Web</span>
+                              <LanguageIcon className="h-3 w-3 mr-1 text-primary" />
+                              <span className="text-xs font-medium">{project.language}</span>
+                            </div>
+                            {project.hasDemo && (
+                              <div className="flex items-center">
+                                <Globe className="h-3 w-3 mr-1 text-primary" />
+                                <span className="text-xs font-medium">Web</span>
+                              </div>
+                            )}
+                          </div>
+                          {/* Star count if available */}
+                          {project.stars > 0 && (
+                            <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm border border-border/40 px-2 py-1 rounded-md flex items-center">
+                              <Star className="h-3 w-3 mr-1 text-yellow-400" />
+                              <span className="text-xs font-medium">{project.stars}</span>
                             </div>
                           )}
-                        </div>
-
-                        {/* Star count if available */}
-                        {project.stars > 0 && (
-                          <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm border border-border/40 px-2 py-1 rounded-md flex items-center">
-                            <Star className="h-3 w-3 mr-1 text-yellow-400" />
-                            <span className="text-xs font-medium">{project.stars}</span>
+                          {/* Floating tags */}
+                          <div className="absolute bottom-3 left-3 flex flex-wrap gap-1 max-w-[90%]">
+                            {displayedTopics.slice(0, 3).map((tag: string, tagIndex: number) => (
+                              <span
+                                key={tagIndex}
+                                className="inline-block bg-primary/20 backdrop-blur-sm text-primary px-2 py-0.5 rounded-full text-xs font-medium truncate max-w-[100px]"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setSelectedTag(tag);
+                                }}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                            {displayedTopics.length > 3 && (
+                              <span className="inline-block bg-muted/40 backdrop-blur-sm text-muted-foreground px-2 py-0.5 rounded-full text-xs">
+                                +{displayedTopics.length - 3}
+                              </span>
+                            )}
                           </div>
-                        )}
-
-                        {/* Floating tags */}
-                        <div className="absolute bottom-3 left-3 flex flex-wrap gap-1 max-w-[90%]">
-                          {displayedTopics.slice(0, 3).map((tag, tagIndex) => (
-                            <span
-                              key={tagIndex}
-                              className="inline-block bg-primary/20 backdrop-blur-sm text-primary px-2 py-0.5 rounded-full text-xs font-medium truncate max-w-[100px]"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setSelectedTag(tag);
-                              }}
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                          {displayedTopics.length > 3 && (
-                            <span className="inline-block bg-muted/40 backdrop-blur-sm text-muted-foreground px-2 py-0.5 rounded-full text-xs">
-                              +{displayedTopics.length - 3}
-                            </span>
-                          )}
                         </div>
-                      </div>
-
-                      <CardContent className="p-6 flex-grow">
-                        <div className="mb-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold group-hover:text-primary transition-colors line-clamp-1">
-                              {project.name}
-                            </h3>
-                            <div className="flex items-center text-xs text-muted-foreground">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              <span>{project.lastUpdated}</span>
+                        <CardContent className="p-6 flex-grow">
+                          <div className="mb-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-lg font-semibold group-hover:text-primary transition-colors line-clamp-1">
+                                {project.name}
+                              </h3>
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <Calendar className="h-3 w-3 mr-1" />
+                                <span>{project.lastUpdated}</span>
+                              </div>
                             </div>
+                            <p className="text-muted-foreground text-sm line-clamp-3">
+                              {project.description}
+                            </p>
                           </div>
-
-                          <p className="text-muted-foreground text-sm line-clamp-3">
-                            {project.description}
-                          </p>
-                        </div>
-                      </CardContent>
-
-                      <CardFooter className="p-6 pt-0 flex justify-between gap-4 mt-auto">
-                        <Link href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full gap-1 group">
-                            <Github className="h-4 w-4 group-hover:-translate-y-1 transition-transform" />
-                            <span>{content.projects.githubButton}</span>
-                          </Button>
-                        </Link>
-
-                        {project.hasDemo && project.demoUrl && (
-                          <Link href={project.demoUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-                            <Button
-                              variant="default"
-                              size="sm"
-                              className="w-full gap-1 bg-gradient-to-r from-primary to-blue-500 hover:shadow-md hover:shadow-primary/20 group"
-                            >
-                              <Globe className="h-4 w-4 group-hover:rotate-12 transition-transform" />
-                              <span>{content.projects.demoButton}</span>
+                        </CardContent>
+                        <CardFooter className="p-6 pt-0 flex justify-between gap-4 mt-auto">
+                          <Link href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+                            <Button variant="outline" size="sm" className="w-full gap-1 group">
+                              <Github className="h-4 w-4 group-hover:-translate-y-1 transition-transform" />
+                              <span>{content.projects.githubButton}</span>
                             </Button>
                           </Link>
-                        )}
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
+                          {project.hasDemo && project.demoUrl && (
+                            <Link href={project.demoUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="w-full gap-1 bg-gradient-to-r from-primary to-blue-500 hover:shadow-md hover:shadow-primary/20 group"
+                              >
+                                <Globe className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                                <span>{content.projects.demoButton}</span>
+                              </Button>
+                            </Link>
+                          )}
+                        </CardFooter>
+                      </Card>
+                    </motion.div>
+                  </EditableItem>
                 );
               })}
             </AnimatePresence>

@@ -8,6 +8,9 @@ import { motion } from "framer-motion";
 import { useState, Dispatch, SetStateAction } from "react";
 import ResumeDownload from "./ResumeDownload";
 import { imageConfig } from "@/lib/utils";
+import { EditableItem } from "@/components/ui/EditableItem";
+import { useEdit } from "@/contexts/EditContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- ProfilePhoto Component ---
 interface ProfilePhotoProps {
@@ -169,6 +172,8 @@ const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ locationLabel, locati
 export default function About() {
   const { content } = useLanguage();
   const [isPhotoHovered, setIsPhotoHovered] = useState(false);
+  const { isAdmin } = useAuth();
+  const { isEditMode, handleEdit } = useEdit();
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -229,33 +234,53 @@ export default function About() {
             variants={fadeIn}
           >
             {/* Title */}
-            <motion.h2
-              className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center"
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
+            <EditableItem
+              id="about-title"
+              path={["about"]}
+              type="heading"
+              content={{ text: content.about.title, type: "heading" }}
+              isAdmin={isAdmin}
+              isEditMode={isEditMode}
+              onEdit={handleEdit}
             >
-              <span className="bg-primary/20 px-3 sm:px-4 py-1 rounded mr-0 sm:mr-3 flex items-center mb-2 sm:mb-0">
-                <User className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                {content.about.title}
-              </span>
-              <span className="h-[1px] w-full sm:w-auto sm:flex-grow bg-gradient-to-r from-primary/50 to-transparent"></span>
-            </motion.h2>
+              <motion.h2
+                className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                viewport={{ once: true }}
+              >
+                <span className="bg-primary/20 px-3 sm:px-4 py-1 rounded mr-0 sm:mr-3 flex items-center mb-2 sm:mb-0">
+                  <User className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                  {content.about.title}
+                </span>
+                <span className="h-[1px] w-full sm:w-auto sm:flex-grow bg-gradient-to-r from-primary/50 to-transparent"></span>
+              </motion.h2>
+            </EditableItem>
 
             {/* Paragraphs */}
             <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-              {paragraphs.map((paragraph: string, index: number) => ( // Add types
-                <motion.div
+              {paragraphs.map((paragraph: string, index: number) => (
+                <EditableItem
                   key={index}
-                  className="text-sm sm:text-base md:text-lg leading-relaxed text-muted-foreground"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 + (index * 0.1) }}
-                  viewport={{ once: true }}
+                  id={`about-paragraph-${index}`}
+                  path={["about", "paragraphs"]}
+                  type="text"
+                  content={{ text: paragraph, type: "text" }}
+                  isAdmin={isAdmin}
+                  isEditMode={isEditMode}
+                  onEdit={handleEdit}
                 >
-                  {highlightWords(paragraph)}
-                </motion.div>
+                  <motion.div
+                    className="text-sm sm:text-base md:text-lg leading-relaxed text-muted-foreground"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 + (index * 0.1) }}
+                    viewport={{ once: true }}
+                  >
+                    {highlightWords(paragraph)}
+                  </motion.div>
+                </EditableItem>
               ))}
             </div>
 
@@ -268,23 +293,55 @@ export default function About() {
               viewport={{ once: true }}
             >
               <motion.div variants={fadeIn}>
-                <JobCard
-                  jobTitle={content.about.jobTitle || ""} // Provide defaults
-                  company={content.about.company || ""}
-                  jobDescription={content.about.jobDescription || ""}
-                  period={content.about.period || ""}
-                />
+                <EditableItem
+                  id="about-jobcard"
+                  path={["about", "job"]}
+                  type="job"
+                  content={{
+                    jobTitle: content.about.jobTitle,
+                    company: content.about.company,
+                    jobDescription: content.about.jobDescription,
+                    period: content.about.period
+                  }}
+                  isAdmin={isAdmin}
+                  isEditMode={isEditMode}
+                  onEdit={handleEdit}
+                >
+                  <JobCard
+                    jobTitle={content.about.jobTitle || ""}
+                    company={content.about.company || ""}
+                    jobDescription={content.about.jobDescription || ""}
+                    period={content.about.period || ""}
+                  />
+                </EditableItem>
               </motion.div>
 
               <motion.div variants={fadeIn}>
-                <ContactInfoCard
-                  locationLabel={content.about.locationLabel || ""} // Provide defaults
-                  location={content.about.location || ""}
-                  emailLabel={content.about.emailLabel || ""}
-                  email="luca.clerot@gmail.com"
-                  phoneLabel={content.about.phoneLabel || ""}
-                  phone="(61) 99916-6442"
-                />
+                <EditableItem
+                  id="about-contactcard"
+                  path={["about", "contact"]}
+                  type="contact"
+                  content={{
+                    locationLabel: content.about.locationLabel,
+                    location: content.about.location,
+                    emailLabel: content.about.emailLabel,
+                    email: "luca.clerot@gmail.com",
+                    phoneLabel: content.about.phoneLabel,
+                    phone: "(61) 99916-6442"
+                  }}
+                  isAdmin={isAdmin}
+                  isEditMode={isEditMode}
+                  onEdit={handleEdit}
+                >
+                  <ContactInfoCard
+                    locationLabel={content.about.locationLabel || ""}
+                    location={content.about.location || ""}
+                    emailLabel={content.about.emailLabel || ""}
+                    email="luca.clerot@gmail.com"
+                    phoneLabel={content.about.phoneLabel || ""}
+                    phone="(61) 99916-6442"
+                  />
+                </EditableItem>
               </motion.div>
             </motion.div>
 
@@ -296,7 +353,7 @@ export default function About() {
               transition={{ delay: 0.6 }}
               viewport={{ once: true }}
             >
-              <ResumeDownload />
+              <ResumeDownload isAdmin={isAdmin} isEditMode={isEditMode} />
             </motion.div>
           </motion.div>
         </motion.div>

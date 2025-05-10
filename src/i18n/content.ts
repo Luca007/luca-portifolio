@@ -126,6 +126,22 @@ export interface Content {
     title: string;
     description: string;
     infoTitle: string; // Card title for contact information
+    // New fields for contact items:
+    emailLabel: string;
+    emailValue: string;
+    phoneLabel: string;
+    phoneValue: string;
+    locationLabel: string;
+    locationValue: string;
+    // GitHub and LinkedIn fields
+    githubLabel: string;
+    githubValue: string;
+    githubLink: string;
+    linkedinLabel: string;
+    linkedinValue: string;
+    linkedinLink: string;
+    formSectionTitle: string; // New key for the form section title
+
     successTitle: string; // Heading after successful form submission
     successButton: string; // Button text to reset form after success
     form: {
@@ -163,6 +179,8 @@ export interface Content {
       educationTitle: string;
       projectsTitle: string;
       certificatesTitle?: string; // Added: Title for certificates section in PDF
+      // Add new contact fields here for PDF if needed, or use existing ones.
+      // For now, assuming PDF generation might use a different subset or structure.
       referencesTitle: string;
       referencesAvailable: string;
       dateGenerated: string;
@@ -463,25 +481,37 @@ export const EN_CONTENT: Content = {
     ]
   },
   contact: {
-    title: "Contact",
-    description: "Let's work together",
+    title: "Get in Touch",
+    description: "Have a question or want to work together? Send me a message!",
     infoTitle: "Contact Information",
-    successTitle: "Message Sent!",
-    successButton: "Send another message",
+    emailLabel: "Email",
+    emailValue: "luca.clerot@gmail.com",
+    phoneLabel: "Phone",    phoneValue: "+55 61 99916-6442",
+    locationLabel: "Location",
+    locationValue: "Brasília, DF, Brazil",
+    githubLabel: "GitHub",
+    githubValue: "Luca007",
+    githubLink: "https://github.com/Luca007",
+    linkedinLabel: "LinkedIn",
+    linkedinValue: "Luca Clerot",
+    linkedinLink: "https://www.linkedin.com/in/lucaclerot/",
+    formSectionTitle: "Send a Message",
     form: {
-      name: "Name",
-      email: "Email",
+      name: "Full Name",
+      namePlaceholder: "Enter your full name",
+      email: "Email Address",
+      emailPlaceholder: "Enter your email address",
       subject: "Subject",
+      subjectPlaceholder: "Enter the subject of your message",
       message: "Message",
+      messagePlaceholder: "Enter your message",
       send: "Send Message",
       sending: "Sending...",
-      success: "Thank you for reaching out. I'll get back to you as soon as possible.",
-      error: "Error sending message. Please try again.",
-      namePlaceholder: "John Doe",
-      emailPlaceholder: "email@example.com",
-      subjectPlaceholder: "How can I help you?",
-      messagePlaceholder: "Enter your message here..."
-    }
+      success: "Your message has been sent successfully! I'll get back to you soon.",
+      error: "An error occurred while sending the message. Please try again later.",
+    },
+    successTitle: "Message Sent!",
+    successButton: "Send Another Message",
   },
   footer: {
     copyright: "All rights reserved",
@@ -795,25 +825,38 @@ export const PT_CONTENT: Content = {
     ]
   },
   contact: {
-    title: "Contato",
-    description: "Vamos trabalhar juntos",
+    title: "Entre em Contato",
+    description: "Tem alguma pergunta ou quer trabalhar junto? Me mande uma mensagem!",
     infoTitle: "Informações de Contato",
-    successTitle: "Mensagem Enviada!",
-    successButton: "Enviar outra mensagem",
+    emailLabel: "Email",
+    emailValue: "luca.clerot@gmail.com",
+    phoneLabel: "Telefone",
+    phoneValue: "+55 61 99916-6442",
+    locationLabel: "Localização",
+    locationValue: "Brasília, DF - Brasil",
+    githubLabel: "GitHub",
+    githubValue: "Luca007",
+    githubLink: "https://github.com/Luca007",
+    linkedinLabel: "LinkedIn",
+    linkedinValue: "Luca Clerot",
+    linkedinLink: "https://www.linkedin.com/in/lucaclerot/",
+    formSectionTitle: "Envie uma Mensagem",
     form: {
-      name: "Nome",
-      email: "Email",
+      name: "Nome Completo",
+      namePlaceholder: "Digite seu nome completo",
+      email: "Endereço de Email",
+      emailPlaceholder: "Digite seu endereço de email",
       subject: "Assunto",
+      subjectPlaceholder: "Digite o assunto da sua mensagem",
       message: "Mensagem",
+      messagePlaceholder: "Digite sua mensagem",
       send: "Enviar Mensagem",
       sending: "Enviando...",
-      success: "Obrigado pelo contato. Responderei o mais breve possível.",
-      error: "Erro ao enviar mensagem. Por favor, tente novamente.",
-      namePlaceholder: "Seu nome",
-      emailPlaceholder: "email@exemplo.com",
-      subjectPlaceholder: "Como posso ajudar?",
-      messagePlaceholder: "Digite sua mensagem aqui..."
-    }
+      success: "Sua mensagem foi enviada com sucesso! Retornarei em breve.",
+      error: "Ocorreu um erro ao enviar a mensagem. Por favor, tente novamente mais tarde.",
+    },
+    successTitle: "Mensagem Enviada!",
+    successButton: "Enviar Outra Mensagem",
   },
   footer: {
     copyright: "Todos os direitos reservados",
@@ -950,7 +993,7 @@ export const ES_CONTENT: Content = {
       {
         name: "React & Next.js",
         icon: "ReactNextJs",
-        description: "Construcción de aplicaciones modernas con renderizado híbrido.",
+        description: "Construcción de aplicaciones modernas com renderizado híbrido.",
         level: 88
       },
       {
@@ -1128,29 +1171,42 @@ export const ES_CONTENT: Content = {
   },
   contact: {
     title: "Contacto",
-    description: "Trabajemos juntos",
+    description: "Ponte en contacto conmigo.",
     infoTitle: "Información de Contacto",
-    successTitle: "Mensaje Enviado!",
-    successButton: "Enviar otra mensaje",
+    emailLabel: "Correo Electrónico",
+    emailValue: "luca.clerot@gmail.com",
+    phoneLabel: "Teléfono",
+    phoneValue: "+55 61 99916-6442",
+    locationLabel: "Ubicación",
+    locationValue: "Brasilia, DF - Brasil",
+    githubLabel: "GitHub",
+    githubValue: "Luca007",
+    githubLink: "https://github.com/Luca007",
+    linkedinLabel: "LinkedIn",
+    linkedinValue: "Luca Clerot",
+    linkedinLink: "https://www.linkedin.com/in/lucaclerot/",
+    formSectionTitle: "Enviar un Mensaje",
     form: {
-      name: "Nombre",
-      email: "Correo",
+      name: "Nombre Completo",
+      namePlaceholder: "Introduce tu nombre completo",
+      email: "Dirección de Correo Electrónico",
+      emailPlaceholder: "Introduce tu dirección de correo electrónico",
       subject: "Asunto",
+      subjectPlaceholder: "Introduce el asunto de tu mensaje",
       message: "Mensaje",
+      messagePlaceholder: "Introduce tu mensaje",
       send: "Enviar Mensaje",
       sending: "Enviando...",
-      success: "¡Mensaje enviado con éxito!",
-      error: "Error al enviar el mensaje. Por favor, inténtalo de nuevo.",
-      namePlaceholder: "John Doe",
-      emailPlaceholder: "correo@ejemplo.com",
-      subjectPlaceholder: "¿Cómo puedo ayudar?",
-      messagePlaceholder: "Ingresa tu mensaje aquí..."
-    }
+      success: "¡Tu mensaje ha sido enviado con éxito! Me pondré en contacto contigo pronto.",
+      error: "Ocurrió un error al enviar el mensaje. Por favor, inténtalo de nuevo más tarde.",
+    },
+    successTitle: "¡Mensaje Enviado!",
+    successButton: "Enviar Otro Mensaje",
   },
   footer: {
     copyright: "Todos los derechos reservados",
     poweredBy: "Desarrollado con",
-    description: "Desarrollador full-stack, ingeniero en computación y entusiasta de la tecnología con experiencia en desarrollo web y diseño de aplicaciones",
+    description: "Desarrollador full-stack, ingeniero en computación e entusiasta da tecnologia com experiência em desenvolvimento web e design de aplicações",
     navigationTitle: "Navegación",
     scrollToTopLabel: "Ir al principio",
   },
