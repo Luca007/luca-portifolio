@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-Se você descobrir alguma vulnerabilidade de segurança, por favor, reporte para [luca@example.com] com o assunto **[SECURITY]**.
+Se você descobrir alguma vulnerabilidade de segurança, por favor, reporte para [luca.clerot@gmail.com] com o assunto **[SECURITY]**.
 
 ## Supported Versions
 
