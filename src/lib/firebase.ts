@@ -1,6 +1,6 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth"; // Added import for authentication
+import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -12,9 +12,24 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app); // Já configurado para autenticação
-
+// Initialize Firebase client-side only
+let app;
+let db;
+let auth;
+if (typeof window !== 'undefined' && firebaseConfig.apiKey) {
+  try {
+    if (!getApps().length) {
+      app = initializeApp(firebaseConfig);
+    }
+    // Type assertion since app may be undefined if init skipped
+    auth = getAuth(app as FirebaseApp);
+    db = getFirestore(app as FirebaseApp);
+  } catch (e) {
+    console.warn('Firebase initialization failed or skipped:', e);
+  }
+} else if (typeof window !== 'undefined') {
+  console.warn('Firebase API key is missing: skipping initialization');
+}
+// Export firebase services
+export { db, auth };
 export default app;

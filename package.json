@@ -9,8 +9,7 @@
     "lint": "next lint",
     "export": "next export",
     "deploy": "bun run build && touch out/.nojekyll",
-    "seed:content": "node scripts/seedContent.js",
-    "postinstall": "next build"
+    "seed:content": "node scripts/seedContent.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",

@@ -1,4 +1,10 @@
+// Enable dynamic rendering to skip static prerender errors
+export const dynamic = 'force-dynamic';
+
+"use client";
+
 import { Suspense, lazy } from 'react';
+import dynamicNext from 'next/dynamic';
 import ClientBody from './ClientBody';
 import Hero from "@/components/Hero";
 import InteractiveBackground from "@/components/InteractiveBackground";
@@ -13,7 +19,7 @@ const Projects = lazy(() => import("@/components/Projects"));
 const Contact = lazy(() => import("@/components/Contact"));
 const Footer = lazy(() => import("@/components/Footer"));
 const ThemeSwitcher = lazy(() => import("@/components/ThemeSwitcher").then(mod => ({ default: mod.ThemeSwitcher })));
-const AdminPanel = lazy(() => import("@/components/AdminPanel"));
+const AdminPanel = dynamicNext(() => import("@/components/AdminPanel"), { ssr: false });
 
 // Simple placeholders that don't cause layout shifts
 const SectionPlaceholder = ({ height = "min-h-screen", id = "" }) => (
@@ -63,10 +69,8 @@ export default function Home() {
         </div>
       </Suspense>
 
-      {/* Admin Panel - will only render for admin users */}
-      <Suspense fallback={null}>
-        <AdminPanel />
-      </Suspense>
+      {/* Admin Panel - client-only dynamic import */}
+      <AdminPanel />
     </ClientBody>
   );
 }
