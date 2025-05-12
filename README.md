@@ -156,7 +156,7 @@ Este projeto está licenciado sob a [MIT License](LICENSE).
 
 ## Contact
 
-- Email: [luca@example.com](mailto:luca@example.com)  
+- Email: [luca.clerot@gmail.com](mailto:luca.clerot@gmail.com)  
 - GitHub: [https://github.com/Luca007](https://github.com/Luca007)
 
 ## Security
